@@ -27,6 +27,7 @@ export const PROVIDER_COLORS: Record<ProviderName, string> = {
   gemini: 'blue',
   claude: 'magenta',
   openai: 'green',
+  nim: 'yellow',
 };
 
 // ─── Role labels ──────────────────────────────────────────────────────────────

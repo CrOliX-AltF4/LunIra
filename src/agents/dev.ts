@@ -36,5 +36,14 @@ export async function runDevAgent(
 ): Promise<AgentResult<DevOutput>> {
   const userMessage = JSON.stringify(input, null, 2);
 
-  return callAgent<DevOutput>('dev', options.provider, options.modelId, SYSTEM_PROMPT, userMessage);
+  return callAgent<DevOutput>(
+    'dev',
+    options.provider,
+    options.modelId,
+    SYSTEM_PROMPT,
+    userMessage,
+    {
+      ...(options.skills !== undefined && { skills: options.skills }),
+    },
+  );
 }

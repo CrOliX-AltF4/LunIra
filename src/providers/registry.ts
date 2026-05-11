@@ -4,6 +4,7 @@ import { GroqProvider } from './groq.js';
 import { GeminiProvider } from './gemini.js';
 import { ClaudeProvider } from './claude.js';
 import { OpenAIProvider } from './openai.js';
+import { NimProvider } from './nim.js';
 
 // ─── Registry ─────────────────────────────────────────────────────────────────
 
@@ -27,6 +28,9 @@ function getInstance(name: ProviderName): LLMProvider {
     case 'openai':
       provider = new OpenAIProvider();
       break;
+    case 'nim':
+      provider = new NimProvider();
+      break;
   }
 
   instances.set(name, provider);
@@ -38,7 +42,7 @@ export function getProvider(name: ProviderName): LLMProvider {
 }
 
 export function getAllProviders(): LLMProvider[] {
-  const names: ProviderName[] = ['groq', 'gemini', 'claude', 'openai'];
+  const names: ProviderName[] = ['groq', 'gemini', 'claude', 'openai', 'nim'];
   return names.map(getInstance);
 }
 

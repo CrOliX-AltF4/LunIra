@@ -5,7 +5,7 @@ import type { PipelineRun } from '../types/index.js';
 
 // ─── Paths ────────────────────────────────────────────────────────────────────
 
-const RUNS_DIR = join(homedir(), '.aiwb', 'runs');
+const RUNS_DIR = join(homedir(), '.lunatar', 'runs');
 
 async function ensureDir(): Promise<void> {
   await mkdir(RUNS_DIR, { recursive: true });

@@ -1,7 +1,9 @@
 import { getModelById } from '../models/catalog.js';
 import type { AgentRole } from '../types/index.js';
-import type { LLMProvider, Message } from '../providers/types.js';
+import type { LLMProvider, Message, ToolResultMessage } from '../providers/types.js';
 import type { AgentMeta, AgentResult } from './types.js';
+import type { Skill } from '../skills/types.js';
+import type { Plugin, PluginContext } from '../plugins/types.js';
 
 // ─── JSON extraction ──────────────────────────────────────────────────────────
 
@@ -41,6 +43,7 @@ function calcCostUsd(modelId: string, inputTokens: number, outputTokens: number)
 
 const MAX_JSON_RETRIES = 2;
 const MAX_RATE_LIMIT_RETRIES = 3;
+const MAX_TOOL_TURNS = 5;
 const RATE_LIMIT_BASE_MS = 1000;
 
 function isRateLimit(err: unknown): boolean {
@@ -74,8 +77,21 @@ export async function callAgent<T>(
   modelId: string,
   systemPrompt: string,
   userMessage: string,
+  options?: { skills?: Skill[]; plugins?: Plugin[]; pluginContext?: PluginContext },
 ): Promise<AgentResult<T>> {
-  const messages: Message[] = [{ role: 'user', content: userMessage }];
+  const activeSkills = options?.skills ?? [];
+  const activePlugins = options?.plugins ?? [];
+  const pluginContext: PluginContext = options?.pluginContext ?? {
+    runId: 'unknown',
+    outputDir: process.cwd(),
+    cwd: process.cwd(),
+  };
+  const enrichedPrompt =
+    activeSkills.length > 0
+      ? systemPrompt + '\n\n---\n\n' + activeSkills.map((s) => s.content).join('\n\n')
+      : systemPrompt;
+
+  const messages: (Message | ToolResultMessage)[] = [{ role: 'user', content: userMessage }];
 
   let totalInputTokens = 0;
   let totalOutputTokens = 0;
@@ -86,6 +102,7 @@ export async function callAgent<T>(
 
   let jsonAttempts = 0;
   let rateLimitAttempts = 0;
+  let toolTurnAttempts = 0;
 
   for (;;) {
     // ── Rate-limit backoff ──────────────────────────────────────────────────
@@ -93,10 +110,11 @@ export async function callAgent<T>(
     try {
       response = await provider.complete({
         modelId,
-        systemPrompt,
+        systemPrompt: enrichedPrompt,
         cacheSystemPrompt: true,
         messages,
         temperature: 0,
+        ...(activePlugins.length > 0 ? { tools: activePlugins.map((p) => p.tool) } : {}),
       });
     } catch (err) {
       if (isRateLimit(err) && rateLimitAttempts < MAX_RATE_LIMIT_RETRIES) {
@@ -115,6 +133,38 @@ export async function callAgent<T>(
     totalCacheReadTokens += response.cacheReadTokens ?? 0;
     totalCacheCreationTokens += response.cacheCreationTokens ?? 0;
     totalDurationMs += response.durationMs;
+
+    // ── Tool use ────────────────────────────────────────────────────────────
+    if (response.stopReason === 'tool_use' && response.toolCalls && response.toolCalls.length > 0) {
+      if (toolTurnAttempts >= MAX_TOOL_TURNS) {
+        throw new Error(
+          'Tool-use loop exceeded ' + String(MAX_TOOL_TURNS) + ' turns without a final response.',
+        );
+      }
+      toolTurnAttempts++;
+
+      messages.push({
+        role: 'assistant' as const,
+        content: response.content || '',
+        toolCalls: response.toolCalls,
+      });
+
+      for (const tc of response.toolCalls) {
+        const plugin = activePlugins.find((p) => p.tool.name === tc.name);
+        let result: string;
+        if (plugin) {
+          try {
+            result = await plugin.handler(tc.input, pluginContext);
+          } catch (err) {
+            result = `Tool error: ${String(err instanceof Error ? err.message : err)}`;
+          }
+        } else {
+          result = `Unknown tool: ${tc.name}`;
+        }
+        messages.push({ role: 'tool' as const, toolCallId: tc.id, content: result });
+      }
+      continue;
+    }
 
     // ── JSON extraction with corrective retry ───────────────────────────────
     try {

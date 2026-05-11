@@ -2,7 +2,7 @@ import React from 'react';
 import { Box, Text } from 'ink';
 import { useSystemMetrics } from '../hooks/useSystemMetrics.js';
 
-const VERSION = '0.1.0';
+const VERSION = '0.3.0';
 
 export function Header() {
   const { cpuUsagePercent, memUsedMb, memTotalMb } = useSystemMetrics();
@@ -15,7 +15,7 @@ export function Header() {
     <Box borderStyle="round" borderColor="gray" paddingX={1} justifyContent="space-between">
       <Box gap={1}>
         <Text color="cyan" bold>
-          ◆ AI Dev Workbench
+          ⚡ Lun'Atar
         </Text>
         <Text color="gray">v{VERSION}</Text>
       </Box>

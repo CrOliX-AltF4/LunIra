@@ -86,7 +86,9 @@ const ROLE_TOKEN_ESTIMATES: Record<AgentRole, { input: number; output: number }>
 function dryRun(intent: string | undefined, skipRoles: ReadonlySet<AgentRole>): void {
   const steps = buildDefaultSteps(skipRoles);
 
-  const header = intent ? `aiwb — dry run for: "${intent}"` : 'aiwb — dry run (no intent given)';
+  const header = intent
+    ? `lunatar — dry run for: "${intent}"`
+    : 'lunatar — dry run (no intent given)';
   process.stdout.write(`\n${header}\n\n`);
 
   const COL = { role: 16, model: 22, provider: 10, tokens: 16, cost: 10 };
@@ -139,7 +141,7 @@ function dryRun(intent: string | undefined, skipRoles: ReadonlySet<AgentRole>): 
 
   if (intent) {
     const skipFlag = skipRoles.size > 0 ? ` --skip ${[...skipRoles].join(',')}` : '';
-    process.stdout.write(`\n  Run with: aiwb run "${intent}"${skipFlag}\n`);
+    process.stdout.write(`\n  Run with: lunatar run "${intent}"${skipFlag}\n`);
   }
 
   process.stdout.write('\n');
@@ -177,7 +179,7 @@ async function headlessRun(
     .map((s) => ROLE_LABELS[s.role] ?? s.role)
     .join(', ');
 
-  process.stderr.write(`aiwb — running pipeline: "${intent}"\n`);
+  process.stderr.write(`lunatar — running pipeline: "${intent}"\n`);
   if (skippedNames) process.stderr.write(`Skipping: ${skippedNames}\n`);
   process.stderr.write('\n');
 
@@ -253,7 +255,7 @@ export async function runCommand(options: RunOptions): Promise<void> {
   if (options.json) {
     if (!options.intent) {
       process.stderr.write(
-        'Error: --json requires an intent argument. Example: aiwb run "build a REST API" --json\n',
+        'Error: --json requires an intent argument. Example: lunatar run "build a REST API" --json\n',
       );
       process.exit(1);
     }

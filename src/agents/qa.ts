@@ -46,5 +46,7 @@ export async function runQAAgent(
 ): Promise<AgentResult<QAOutput>> {
   const userMessage = JSON.stringify(input, null, 2);
 
-  return callAgent<QAOutput>('qa', options.provider, options.modelId, SYSTEM_PROMPT, userMessage);
+  return callAgent<QAOutput>('qa', options.provider, options.modelId, SYSTEM_PROMPT, userMessage, {
+    ...(options.skills !== undefined && { skills: options.skills }),
+  });
 }

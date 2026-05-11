@@ -81,6 +81,39 @@ export const MODEL_CATALOG: ModelSpec[] = [
     strengths: ['code', 'architecture'],
   },
 
+  // ── NVIDIA NIM ──────────────────────────────────────────────────────────────
+  // Free endpoints — rate limits not guaranteed, use as fallback/experimentation.
+  {
+    id: 'deepseek-ai/deepseek-r1-0528',
+    provider: 'nim',
+    displayName: 'DeepSeek R1 (NIM)',
+    contextWindow: 1_000_000,
+    costPerInputToken: 0,
+    costPerOutputToken: 0,
+    avgLatencyMs: 3000,
+    strengths: ['code', 'architecture', 'analysis'],
+  },
+  {
+    id: 'nvidia/nemotron-super-49b-v1',
+    provider: 'nim',
+    displayName: 'Nemotron Super 49B (NIM)',
+    contextWindow: 1_000_000,
+    costPerInputToken: 0,
+    costPerOutputToken: 0,
+    avgLatencyMs: 2500,
+    strengths: ['architecture', 'analysis'],
+  },
+  {
+    id: 'mistralai/mistral-medium-3',
+    provider: 'nim',
+    displayName: 'Mistral Medium 3 (NIM)',
+    contextWindow: 128_000,
+    costPerInputToken: 0,
+    costPerOutputToken: 0,
+    avgLatencyMs: 1500,
+    strengths: ['clarification', 'analysis', 'debug'],
+  },
+
   // ── OpenAI ──────────────────────────────────────────────────────────────────
   {
     id: 'gpt-4o-mini',

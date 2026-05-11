@@ -1,14 +1,14 @@
 {
-  "name": "ai-dev-workbench-cli",
-  "version": "0.2.0",
-  "description": "Open-source AI-powered development orchestration CLI",
+  "name": "lunatar",
+  "version": "0.3.0",
+  "description": "Multi-agent AI development pipeline CLI — forge production-ready code from a single intent",
   "type": "module",
   "engines": {
     "node": ">=20.0.0",
     "npm": ">=10.0.0"
   },
   "bin": {
-    "aiwb": "./dist/index.js"
+    "lunatar": "./dist/index.js"
   },
   "scripts": {
     "build": "tsup",
@@ -21,7 +21,8 @@
     "test": "vitest run",
     "test:watch": "vitest",
     "test:coverage": "vitest run --coverage",
-    "prepare": "husky"
+    "prepare": "husky",
+    "prepublishOnly": "npm run build && npm test"
   },
   "lint-staged": {
     "*.{ts,tsx}": [
@@ -40,6 +41,14 @@
     "developer-tools",
     "open-source"
   ],
+  "author": "CrOliX-AltF4",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/CrOliX-AltF4/AI-Dev-Workbench-CLI.git"
+  },
+  "files": [
+    "dist"
+  ],
   "license": "MIT",
   "devDependencies": {
     "@commitlint/cli": "^19.0.0",
@@ -50,7 +59,7 @@
     "eslint-config-prettier": "^9.0.0",
     "husky": "^9.0.0",
     "lint-staged": "^15.0.0",
-    "prettier": "^3.0.0",
+    "prettier": "^3.8.3",
     "tsup": "^8.5.1",
     "tsx": "^4.0.0",
     "typescript": "^5.0.0",
@@ -58,14 +67,14 @@
     "vitest": "^4.1.4"
   },
   "dependencies": {
-    "@anthropic-ai/sdk": "^0.88.0",
+    "@anthropic-ai/sdk": "^0.95.1",
     "@google/generative-ai": "^0.24.1",
     "commander": "^14.0.3",
     "dotenv": "^17.4.2",
     "groq-sdk": "^1.1.2",
-    "ink": "^7.0.0",
+    "ink": "^7.0.2",
     "ink-text-input": "^6.0.0",
-    "openai": "^6.34.0",
+    "openai": "^6.37.0",
     "react": "^19.2.5"
   }
 }

@@ -36,5 +36,7 @@ export async function runPOAgent(
 ): Promise<AgentResult<POOutput>> {
   const userMessage = `User intent: "${input.intent}"`;
 
-  return callAgent<POOutput>('po', options.provider, options.modelId, SYSTEM_PROMPT, userMessage);
+  return callAgent<POOutput>('po', options.provider, options.modelId, SYSTEM_PROMPT, userMessage, {
+    ...(options.skills !== undefined && { skills: options.skills }),
+  });
 }

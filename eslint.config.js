@@ -8,9 +8,9 @@ export default tseslint.config(
     languageOptions: {
       parserOptions: {
         projectService: {
-          // Route test files (up to 2 dirs deep) to tsconfig.test.json
           allowDefaultProject: ['tests/*.ts', 'tests/*/*.ts', 'tests/*/*/*.ts'],
           defaultProject: './tsconfig.test.json',
+          maximumDefaultProjectFileMatchCount_THIS_WILL_SLOW_DOWN_LINTING: 30,
         },
         tsconfigRootDir: import.meta.dirname,
       },
@@ -31,6 +31,8 @@ export default tseslint.config(
       'dist/**',
       'node_modules/**',
       'coverage/**',
+      '.claude/**',
+      'docs/**',
       'eslint.config.js',
       'commitlint.config.cjs',
       'vitest.config.ts',

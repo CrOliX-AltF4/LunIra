@@ -83,6 +83,8 @@ interface PipelineScreenProps {
   intent: string;
   skipRoles?: ReadonlySet<AgentRole>;
   onComplete?: (run: PipelineRun) => void;
+  activeSkillIds?: string[];
+  activePluginIds?: string[];
 }
 
 const KEYBINDINGS = [
@@ -92,7 +94,13 @@ const KEYBINDINGS = [
   { key: 'q', label: 'quit' },
 ];
 
-export function PipelineScreen({ intent, skipRoles, onComplete }: PipelineScreenProps) {
+export function PipelineScreen({
+  intent,
+  skipRoles,
+  onComplete,
+  activeSkillIds,
+  activePluginIds,
+}: PipelineScreenProps) {
   const app = useApp();
   const [steps, setSteps] = useState<PipelineStep[]>(() => buildDefaultSteps(skipRoles));
   const [focusedIndex, setFocusedIndex] = useState(0);
@@ -109,10 +117,25 @@ export function PipelineScreen({ intent, skipRoles, onComplete }: PipelineScreen
     if (input === 'm') setShowPicker(true);
     if (key.return) {
       setIsRunning(true);
+      const override =
+        (activeSkillIds?.length ?? 0) > 0 || (activePluginIds?.length ?? 0) > 0
+          ? {
+              ...(activeSkillIds && activeSkillIds.length > 0 ? { skillIds: activeSkillIds } : {}),
+              ...(activePluginIds && activePluginIds.length > 0
+                ? { pluginIds: activePluginIds }
+                : {}),
+            }
+          : undefined;
       void orchestrator
-        .run(intent, steps, (updatedStep) => {
-          setSteps((prev) => prev.map((s) => (s.id === updatedStep.id ? updatedStep : s)));
-        })
+        .run(
+          intent,
+          steps,
+          (updatedStep) => {
+            setSteps((prev) => prev.map((s) => (s.id === updatedStep.id ? updatedStep : s)));
+          },
+          undefined,
+          override,
+        )
         .then((run) => {
           onComplete?.(run);
         })

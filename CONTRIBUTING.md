@@ -1,4 +1,4 @@
-# Contributing to AI Dev Workbench CLI
+# Contributing to Lun'Atar
 
 Thank you for contributing! This guide will help you get started quickly and ensure your contribution fits smoothly into the project.
 
@@ -33,7 +33,7 @@ This project adheres to the [Contributor Covenant](https://www.contributor-coven
 
 ```bash
 git clone https://github.com/CrOliX-AltF4/AI-Dev-Workbench-CLI.git
-cd ai-dev-workbench-cli
+cd AI-Dev-Workbench-CLI
 npm install
 ```
 
@@ -60,16 +60,17 @@ Git hooks (pre-commit, commit-msg) are installed automatically via Husky on `npm
 
 ```
 src/
-├── cli/           # Commander.js entry points
-├── ui/            # TUI interface (Ink)
-├── orchestrator/  # Central pipeline orchestrator
+├── cli/           # Commander.js entry — run, history, setup, config, init
+├── ui/            # Ink TUI — Prompt → Config → Pipeline → Results
+├── orchestrator/  # Public façade — stable entry point for all callers
 ├── agents/        # Stateless agents: PO · Planner · Dev · QA
-├── models/        # Model Recommendation Engine
-├── providers/     # LLM adapters: Groq · Gemini · Claude · OpenAI
-├── pipeline/      # Pipeline Engine + state machine
-├── storage/       # Run persistence (JSON → SQLite)
-├── metrics/       # Monitoring: costs, tokens, latency, system
-└── types/         # Shared TypeScript types
+├── pipeline/      # Sequential runner + selective context mappers
+├── models/        # Model catalog + recommendation engine
+├── providers/     # LLM adapters: Groq · Gemini · Claude · OpenAI · NIM
+├── skills/        # Skill registry + markdown catalog
+├── plugins/       # Plugin registry + built-in tool implementations
+├── config/        # lunatar.config.json loader
+└── storage/       # Run persistence (JSON → ~/.lunatar/runs/)
 ```
 
 ---
@@ -90,9 +91,9 @@ src/
    npm run typecheck && npm run lint && npm test && npm run build
    ```
 
-4. **Open a Pull Request** targeting `dev` (never directly to `main`).
+4. **Open a Pull Request** targeting `dev` (never directly to `master`).
 
-> `main` = stable production. `dev` = integration branch.
+> `master` = stable production. `dev` = integration branch.
 
 ---
 
@@ -171,7 +172,7 @@ npm run test:watch      # watch mode during development
 2. Fill in the PR template
 3. Verify all CI checks pass
 4. Request a review from at least one maintainer
-5. A squash merge will be performed to keep a clean history on `dev`
+5. A squash merge will be performed to keep a clean history on `master`
 
 ---
 

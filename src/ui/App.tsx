@@ -3,10 +3,11 @@ import { PromptScreen } from './screens/PromptScreen.js';
 import { PipelineScreen } from './screens/PipelineScreen.js';
 import { ResultsScreen } from './screens/ResultsScreen.js';
 import { SetupScreen } from './screens/SetupScreen.js';
+import { ConfigScreen } from './screens/ConfigScreen.js';
 import { listConfiguredProviders } from '../providers/config.js';
 import type { AgentRole, PipelineRun } from '../types/index.js';
 
-type Screen = 'setup' | 'prompt' | 'pipeline' | 'results';
+type Screen = 'setup' | 'prompt' | 'config' | 'pipeline' | 'results';
 
 interface AppProps {
   initialIntent?: string;
@@ -20,9 +21,17 @@ export function App({ initialIntent, skipRoles }: AppProps) {
   });
   const [intent, setIntent] = useState(initialIntent ?? '');
   const [completedRun, setCompletedRun] = useState<PipelineRun | null>(null);
+  const [activeSkillIds, setActiveSkillIds] = useState<string[]>([]);
+  const [activePluginIds, setActivePluginIds] = useState<string[]>([]);
 
   const handleIntentSubmit = (value: string) => {
     setIntent(value);
+    setScreen('config');
+  };
+
+  const handleConfigConfirm = (skillIds: string[], pluginIds: string[]) => {
+    setActiveSkillIds(skillIds);
+    setActivePluginIds(pluginIds);
     setScreen('pipeline');
   };
 
@@ -34,6 +43,8 @@ export function App({ initialIntent, skipRoles }: AppProps) {
   const handleNewPipeline = () => {
     setCompletedRun(null);
     setIntent('');
+    setActiveSkillIds([]);
+    setActivePluginIds([]);
     setScreen('prompt');
   };
 
@@ -51,6 +62,17 @@ export function App({ initialIntent, skipRoles }: AppProps) {
     return <PromptScreen onSubmit={handleIntentSubmit} />;
   }
 
+  if (screen === 'config') {
+    return (
+      <ConfigScreen
+        onConfirm={handleConfigConfirm}
+        onBack={() => {
+          setScreen('prompt');
+        }}
+      />
+    );
+  }
+
   if (screen === 'results' && completedRun) {
     return <ResultsScreen run={completedRun} onNewPipeline={handleNewPipeline} />;
   }
@@ -60,6 +82,8 @@ export function App({ initialIntent, skipRoles }: AppProps) {
       intent={intent}
       onComplete={handlePipelineComplete}
       {...(skipRoles ? { skipRoles } : {})}
+      {...(activeSkillIds.length > 0 ? { activeSkillIds } : {})}
+      {...(activePluginIds.length > 0 ? { activePluginIds } : {})}
     />
   );
 }

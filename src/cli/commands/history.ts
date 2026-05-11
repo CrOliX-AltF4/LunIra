@@ -44,7 +44,7 @@ export async function historyCommand(limit = 20): Promise<void> {
   const runs = await listRuns();
 
   if (runs.length === 0) {
-    console.log('No pipeline runs found. Run `aiwb run` to get started.');
+    console.log('No pipeline runs found. Run `lunatar run` to get started.');
     return;
   }
 

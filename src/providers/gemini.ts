@@ -8,7 +8,7 @@ export class GeminiProvider implements LLMProvider {
   private client(): GoogleGenerativeAI {
     const apiKey = getApiKey('gemini');
     if (!apiKey)
-      throw new Error('Gemini API key not configured. Run: aiwb config set gemini.apiKey <key>');
+      throw new Error('Gemini API key not configured. Run: lunatar config set gemini.apiKey <key>');
     return new GoogleGenerativeAI(apiKey);
   }
 

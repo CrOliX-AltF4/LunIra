@@ -6,12 +6,13 @@ import {
 } from '../../providers/index.js';
 import type { ProviderName } from '../../types/index.js';
 
-const VALID_PROVIDERS: ProviderName[] = ['groq', 'gemini', 'claude', 'openai'];
+const VALID_PROVIDERS: ProviderName[] = ['groq', 'gemini', 'claude', 'openai', 'nim'];
 const PROVIDER_ENV: Record<ProviderName, string> = {
   groq: 'GROQ_API_KEY',
   gemini: 'GOOGLE_API_KEY',
   claude: 'ANTHROPIC_API_KEY',
   openai: 'OPENAI_API_KEY',
+  nim: 'NIM_API_KEY',
 };
 
 function isProviderName(value: string): value is ProviderName {
@@ -61,7 +62,7 @@ export function configCommand(action: string, key: string, value?: string): void
         process.exit(1);
       }
       setApiKey(parsed.provider, value);
-      console.log(`✓ ${key} saved to ~/.aiwb/config.json`);
+      console.log(`✓ ${key} saved to ~/.lunatar/config.json`);
       break;
     }
 
@@ -72,14 +73,14 @@ export function configCommand(action: string, key: string, value?: string): void
         process.exit(1);
       }
       removeApiKey(parsed.provider);
-      console.log(`✓ ${key} removed from ~/.aiwb/config.json`);
+      console.log(`✓ ${key} removed from ~/.lunatar/config.json`);
       break;
     }
 
     case 'list': {
       const configured = listConfiguredProviders();
       if (configured.length === 0) {
-        console.log('No providers configured.\nRun: aiwb config set <provider>.apiKey <key>');
+        console.log('No providers configured.\nRun: lunatar config set <provider>.apiKey <key>');
       } else {
         console.log('Configured providers:');
         for (const provider of configured) {

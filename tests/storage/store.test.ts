@@ -45,7 +45,7 @@ describe('saveRun()', () => {
   it('creates the runs directory before writing', async () => {
     await saveRun(RUN_A);
     expect(mockMkdir).toHaveBeenCalledWith(
-      expect.stringContaining('.aiwb'),
+      expect.stringContaining('.lunatar'),
       expect.objectContaining({ recursive: true }),
     );
   });
