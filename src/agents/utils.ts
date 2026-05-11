@@ -43,6 +43,7 @@ function calcCostUsd(modelId: string, inputTokens: number, outputTokens: number)
 
 const MAX_JSON_RETRIES = 2;
 const MAX_RATE_LIMIT_RETRIES = 3;
+const MAX_TOOL_TURNS = 5;
 const RATE_LIMIT_BASE_MS = 1000;
 
 function isRateLimit(err: unknown): boolean {
@@ -101,6 +102,7 @@ export async function callAgent<T>(
 
   let jsonAttempts = 0;
   let rateLimitAttempts = 0;
+  let toolTurnAttempts = 0;
 
   for (;;) {
     // ── Rate-limit backoff ──────────────────────────────────────────────────
@@ -134,10 +136,21 @@ export async function callAgent<T>(
 
     // ── Tool use ────────────────────────────────────────────────────────────
     if (response.stopReason === 'tool_use' && response.toolCalls && response.toolCalls.length > 0) {
-      messages.push({ role: 'assistant' as const, content: response.content || '' });
+      if (toolTurnAttempts >= MAX_TOOL_TURNS) {
+        throw new Error(
+          'Tool-use loop exceeded ' + String(MAX_TOOL_TURNS) + ' turns without a final response.',
+        );
+      }
+      toolTurnAttempts++;
+
+      messages.push({
+        role: 'assistant' as const,
+        content: response.content || '',
+        toolCalls: response.toolCalls,
+      });
 
       for (const tc of response.toolCalls) {
-        const plugin = activePlugins.find((p) => p.id === tc.name);
+        const plugin = activePlugins.find((p) => p.tool.name === tc.name);
         let result: string;
         if (plugin) {
           try {

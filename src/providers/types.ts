@@ -5,6 +5,7 @@ import type { ProviderName } from '../types/index.js';
 export interface Message {
   role: 'user' | 'assistant';
   content: string;
+  toolCalls?: ToolCall[]; // populated only when role === 'assistant' and tool calls were made
 }
 
 export interface ToolDefinition {

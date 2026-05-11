@@ -1,5 +1,5 @@
 import OpenAI from 'openai';
-import type { LLMProvider, CompletionRequest, CompletionResponse } from './types.js';
+import type { LLMProvider, CompletionRequest, CompletionResponse, ToolCall } from './types.js';
 import { getApiKey } from './config.js';
 
 const NIM_BASE_URL = 'https://integrate.api.nvidia.com/v1';
@@ -31,6 +31,16 @@ export class NimProvider implements LLMProvider {
     for (const m of request.messages) {
       if (m.role === 'tool') {
         messages.push({ role: 'tool', tool_call_id: m.toolCallId, content: m.content });
+      } else if (m.role === 'assistant' && m.toolCalls && m.toolCalls.length > 0) {
+        messages.push({
+          role: 'assistant' as const,
+          content: m.content || null,
+          tool_calls: m.toolCalls.map((tc) => ({
+            id: tc.id,
+            type: 'function' as const,
+            function: { name: tc.name, arguments: JSON.stringify(tc.input) },
+          })),
+        });
       } else {
         messages.push({ role: m.role, content: m.content });
       }
@@ -46,8 +56,34 @@ export class NimProvider implements LLMProvider {
     const choice = response.choices[0];
     if (!choice) throw new Error('NIM returned no choices');
 
+    const rawToolCalls = choice.message.tool_calls ?? [];
+    const toolCalls: ToolCall[] = rawToolCalls
+      .filter(
+        (
+          tc,
+        ): tc is typeof tc & { type: 'function'; function: { name: string; arguments: string } } =>
+          tc.type === 'function',
+      )
+      .map((tc): ToolCall | null => {
+        let parsedInput: unknown;
+        try {
+          parsedInput = JSON.parse(tc.function.arguments) as unknown;
+        } catch {
+          return null;
+        }
+        return { id: tc.id, name: tc.function.name, input: parsedInput };
+      })
+      .filter((tc): tc is ToolCall => tc !== null);
+
     return {
       content: choice.message.content ?? '',
+      ...(toolCalls.length > 0 ? { toolCalls } : {}),
+      stopReason:
+        choice.finish_reason === 'tool_calls'
+          ? ('tool_use' as const)
+          : choice.finish_reason === 'length'
+            ? ('max_tokens' as const)
+            : ('end_turn' as const),
       inputTokens: response.usage?.prompt_tokens ?? 0,
       outputTokens: response.usage?.completion_tokens ?? 0,
       durationMs: Date.now() - start,

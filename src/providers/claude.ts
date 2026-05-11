@@ -39,13 +39,22 @@ export class ClaudeProvider implements LLMProvider {
         return {
           role: 'user' as const,
           content: [
-            {
-              type: 'tool_result' as const,
-              tool_use_id: m.toolCallId,
-              content: m.content,
-            },
+            { type: 'tool_result' as const, tool_use_id: m.toolCallId, content: m.content },
           ],
         };
+      }
+      if (m.role === 'assistant' && m.toolCalls && m.toolCalls.length > 0) {
+        const contentBlocks: Anthropic.Messages.ContentBlockParam[] = [];
+        if (m.content) contentBlocks.push({ type: 'text', text: m.content });
+        for (const tc of m.toolCalls) {
+          contentBlocks.push({
+            type: 'tool_use' as const,
+            id: tc.id,
+            name: tc.name,
+            input: tc.input as Record<string, unknown>,
+          });
+        }
+        return { role: 'assistant' as const, content: contentBlocks };
       }
       return { role: m.role, content: m.content };
     });

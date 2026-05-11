@@ -29,6 +29,16 @@ export class OpenAIProvider implements LLMProvider {
     for (const m of request.messages) {
       if (m.role === 'tool') {
         messages.push({ role: 'tool', tool_call_id: m.toolCallId, content: m.content });
+      } else if (m.role === 'assistant' && m.toolCalls && m.toolCalls.length > 0) {
+        messages.push({
+          role: 'assistant' as const,
+          content: m.content || null,
+          tool_calls: m.toolCalls.map((tc) => ({
+            id: tc.id,
+            type: 'function' as const,
+            function: { name: tc.name, arguments: JSON.stringify(tc.input) },
+          })),
+        });
       } else {
         messages.push({ role: m.role, content: m.content });
       }
@@ -60,11 +70,16 @@ export class OpenAIProvider implements LLMProvider {
         ): tc is typeof tc & { type: 'function'; function: { name: string; arguments: string } } =>
           tc.type === 'function',
       )
-      .map((tc) => ({
-        id: tc.id,
-        name: tc.function.name,
-        input: JSON.parse(tc.function.arguments) as unknown,
-      }));
+      .map((tc): ToolCall | null => {
+        let parsedInput: unknown;
+        try {
+          parsedInput = JSON.parse(tc.function.arguments) as unknown;
+        } catch {
+          return null;
+        }
+        return { id: tc.id, name: tc.function.name, input: parsedInput };
+      })
+      .filter((tc): tc is ToolCall => tc !== null);
 
     return {
       content: choice.message.content ?? '',
