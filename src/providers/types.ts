@@ -52,6 +52,16 @@ export interface CompletionResponse {
   stopReason?: 'end_turn' | 'tool_use' | 'max_tokens';
 }
 
+// ─── Provider meta ────────────────────────────────────────────────────────────
+
+export interface ProviderMeta {
+  inputTokens: number;
+  outputTokens: number;
+  costUsd: number;
+  durationMs: number;
+  toolCalls?: string[]; // tool names called (may contain duplicates)
+}
+
 // ─── Provider interface ───────────────────────────────────────────────────────
 
 export interface LLMProvider {

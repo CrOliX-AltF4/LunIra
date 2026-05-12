@@ -99,6 +99,7 @@ export async function callAgent<T>(
   let totalCacheCreationTokens = 0;
   let totalDurationMs = 0;
   let retries = 0;
+  const allToolCallNames: string[] = [];
 
   let jsonAttempts = 0;
   let rateLimitAttempts = 0;
@@ -143,6 +144,10 @@ export async function callAgent<T>(
       }
       toolTurnAttempts++;
 
+      for (const tc of response.toolCalls) {
+        allToolCallNames.push(tc.name);
+      }
+
       messages.push({
         role: 'assistant' as const,
         content: response.content || '',
@@ -181,6 +186,7 @@ export async function callAgent<T>(
         costUsd: calcCostUsd(modelId, totalInputTokens, totalOutputTokens),
         durationMs: totalDurationMs,
         retries,
+        ...(allToolCallNames.length > 0 ? { toolCalls: allToolCallNames } : {}),
       };
 
       return { output: parsed, meta };

@@ -32,6 +32,8 @@ export interface AgentMeta {
   durationMs: number;
   /** Number of retries needed (0 = first attempt succeeded). */
   retries: number;
+  /** Tool names called during the agent response (may contain duplicates). */
+  toolCalls?: string[];
 }
 
 export interface AgentResult<T> {

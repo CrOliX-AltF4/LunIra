@@ -2,7 +2,7 @@ import { randomUUID } from 'node:crypto';
 import { getProvider } from '../providers/registry.js';
 import { runPOAgent, runPlannerAgent, runDevAgent, runQAAgent } from '../agents/index.js';
 import type { PipelineRun, PipelineStep, AgentRole } from '../types/index.js';
-import type { POOutput, PlannerOutput, DevOutput, QAOutput } from '../agents/types.js';
+import type { POOutput, PlannerOutput, DevOutput, QAOutput, AgentMeta } from '../agents/types.js';
 import { buildPlannerInput, buildDevInput, buildQAInput } from './mapper.js';
 import { loadProjectConfig } from '../config/project.js';
 import type { ProjectConfig } from '../config/types.js';
@@ -182,7 +182,7 @@ export async function runPipeline(
             },
           );
           ctx.po = output;
-          patch(i, applyMeta('completed', output, meta));
+          patch(i, applyMeta('completed', output, meta, poSkills));
           break;
         }
 
@@ -197,7 +197,7 @@ export async function runPipeline(
             ...(plannerPlugins.length > 0 ? { plugins: plannerPlugins } : {}),
           });
           ctx.planner = output;
-          patch(i, applyMeta('completed', output, meta));
+          patch(i, applyMeta('completed', output, meta, plannerSkills));
           break;
         }
 
@@ -213,7 +213,7 @@ export async function runPipeline(
             ...(devPlugins.length > 0 ? { plugins: devPlugins } : {}),
           });
           ctx.dev = output;
-          patch(i, applyMeta('completed', output, meta));
+          patch(i, applyMeta('completed', output, meta, devSkills));
           break;
         }
 
@@ -229,7 +229,7 @@ export async function runPipeline(
             ...(qaPlugins.length > 0 ? { plugins: qaPlugins } : {}),
           });
           ctx.qa = output;
-          patch(i, applyMeta('completed', output, meta));
+          patch(i, applyMeta('completed', output, meta, qaSkills));
           break;
         }
       }
@@ -255,14 +255,24 @@ export async function runPipeline(
 function applyMeta(
   status: 'completed',
   output: unknown,
-  meta: { inputTokens: number; outputTokens: number; costUsd: number; durationMs: number },
+  meta: AgentMeta,
+  activeSkills: { tokenEstimate: number }[],
 ): Partial<PipelineStep> {
+  const skillsTokens = activeSkills.reduce((sum, s) => sum + s.tokenEstimate, 0);
+
+  const pluginsCallsMap: Record<string, number> = {};
+  for (const toolName of meta.toolCalls ?? []) {
+    pluginsCallsMap[toolName] = (pluginsCallsMap[toolName] ?? 0) + 1;
+  }
+
   return {
     status,
     output: JSON.stringify(output),
     tokensUsed: meta.inputTokens + meta.outputTokens,
     costUsd: meta.costUsd,
     durationMs: meta.durationMs,
+    skillsTokens,
+    ...(Object.keys(pluginsCallsMap).length > 0 ? { pluginsCalls: pluginsCallsMap } : {}),
   };
 }
 
