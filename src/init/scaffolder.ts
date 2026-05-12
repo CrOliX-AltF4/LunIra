@@ -18,9 +18,12 @@ import {
   huskyCommitMsg,
   tsconfigTest,
   vitestConfig,
+  lunatarConfig,
+  readmeMd,
 } from './templates/core.js';
 import * as cliTemplates from './templates/cli.js';
 import * as frontendTemplates from './templates/frontend.js';
+import * as fullstackTemplates from './templates/fullstack.js';
 import * as libTemplates from './templates/lib.js';
 
 const exec = promisify(execFile);
@@ -41,6 +44,8 @@ function coreFiles(name: string, type: ProjectType): ScaffoldFile[] {
     { path: '.husky/pre-commit', content: huskyPreCommit() },
     { path: '.husky/commit-msg', content: huskyCommitMsg() },
     { path: 'tsconfig.test.json', content: tsconfigTest() },
+    { path: 'lunatar.config.json', content: lunatarConfig() },
+    { path: 'README.md', content: readmeMd(name, type) },
     { path: 'tests/.gitkeep', content: '' },
   ];
 }
@@ -79,10 +84,14 @@ function layerFiles(name: string, type: ProjectType): ScaffoldFile[] {
       ];
 
     case 'fullstack':
-      throw new Error(
-        'fullstack scaffold is not yet implemented.\n' +
-          'Hint: use `npx create-next-app@latest` then add AGENTS.md and CLAUDE.md manually.',
-      );
+      return [
+        { path: 'package.json', content: fullstackTemplates.packageJson(name) },
+        { path: 'tsconfig.json', content: fullstackTemplates.tsconfig() },
+        { path: 'next.config.ts', content: fullstackTemplates.nextConfig() },
+        { path: 'src/app/page.tsx', content: fullstackTemplates.appPage(name) },
+        { path: 'src/app/layout.tsx', content: fullstackTemplates.appLayout(name) },
+        { path: 'vitest.config.ts', content: vitestConfig() },
+      ];
   }
 }
 
@@ -142,5 +151,18 @@ export async function scaffold(options: ScaffoldOptions): Promise<void> {
     },
   );
 
-  process.stdout.write('\n');
+  process.stdout.write(buildGuidance(name, type));
+}
+
+// ─── Post-scaffold guidance ───────────────────────────────────────────────────
+
+export function buildGuidance(name: string, type: ProjectType): string {
+  return [
+    `\n✓ Project "${name}" (${type}) ready.\n`,
+    `Next steps:`,
+    `  cd ${name}`,
+    `  lunatar setup          # configure LLM API keys`,
+    `  lunatar run "<intent>" # run your first pipeline`,
+    `\nEdit lunatar.config.json to activate skills and plugins.\n`,
+  ].join('\n');
 }
