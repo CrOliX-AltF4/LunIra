@@ -77,10 +77,10 @@ src/
 
 ## Contribution workflow
 
-1. **Fork** the repo and create a branch from `dev`:
+1. **Fork** the repo and create a branch from `master`:
 
    ```bash
-   git checkout -b feat/my-feature dev
+   git checkout -b feat/my-feature master
    ```
 
 2. **Develop** your feature with atomic commits.
@@ -91,9 +91,7 @@ src/
    npm run typecheck && npm run lint && npm test && npm run build
    ```
 
-4. **Open a Pull Request** targeting `dev` (never directly to `master`).
-
-> `master` = stable production. `dev` = integration branch.
+4. **Open a Pull Request** targeting `master`.
 
 ---
 
@@ -168,11 +166,11 @@ npm run test:watch      # watch mode during development
 
 ## Submitting a PR
 
-1. Make sure the target branch is `dev`
+1. Make sure the target branch is `master`
 2. Fill in the PR template
 3. Verify all CI checks pass
 4. Request a review from at least one maintainer
-5. A squash merge will be performed to keep a clean history on `master`
+5. A squash merge will be performed to keep a clean history
 
 ---
 

@@ -38,3 +38,7 @@ runs/
 .claude-flow/
 .claude/
 .mcp.json
+
+# Local dev artifacts
+docs/superpowers/
+*.db
