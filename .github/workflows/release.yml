@@ -31,6 +31,12 @@ jobs:
           node-version: 22
           cache: npm
 
+      - name: Install npm 11 via corepack
+        run: |
+          corepack enable
+          corepack prepare npm@latest --activate
+          npm --version
+
       - name: Install dependencies
         run: npm ci
 
@@ -50,12 +56,10 @@ jobs:
         run: |
           npm --version
           npm config list
-          echo "OIDC token available: ${{ env.ACTIONS_ID_TOKEN_REQUEST_URL != '' }}"
+          echo "OIDC URL: ${ACTIONS_ID_TOKEN_REQUEST_URL:-not set}"
 
       - name: Publish to npm
-        run: |
-          npm config delete //registry.npmjs.org/:_authToken --location=project
-          npm publish --provenance --access public
+        run: npm publish --provenance --access public
 
       - name: Upload npm logs on failure
         if: failure()
