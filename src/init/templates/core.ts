@@ -106,9 +106,9 @@ const CI_YML = `name: CI
 
 on:
   push:
-    branches: [main, dev]
+    branches: [master]
   pull_request:
-    branches: [main, dev]
+    branches: [master]
 
 jobs:
   ci:
