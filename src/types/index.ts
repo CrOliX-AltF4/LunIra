@@ -42,6 +42,8 @@ export interface PipelineStep {
   costUsd?: number;
   durationMs?: number;
   error?: string;
+  skillsTokens?: number; // estimated tokens from injected skills
+  pluginsCalls?: Record<string, number>; // pluginId → call count
 }
 
 export interface PipelineRun {
