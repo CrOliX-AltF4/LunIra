@@ -3,8 +3,8 @@ import { join } from 'node:path';
 import type { ProjectConfig } from './types.js';
 
 export const defaultConfig: ProjectConfig = {
-  skills: {},
-  plugins: {},
+  skills: { external: [] },
+  plugins: { external: [] },
 };
 
 export async function loadProjectConfig(cwd: string): Promise<ProjectConfig> {
@@ -17,8 +17,14 @@ export async function loadProjectConfig(cwd: string): Promise<ProjectConfig> {
     }
     const parsed = value as Partial<ProjectConfig>;
     return {
-      skills: parsed.skills ?? {},
-      plugins: parsed.plugins ?? {},
+      skills: {
+        ...parsed.skills,
+        external: parsed.skills?.external ?? [],
+      },
+      plugins: {
+        ...parsed.plugins,
+        external: parsed.plugins?.external ?? [],
+      },
       ...(parsed.models ? { models: parsed.models } : {}),
     };
   } catch {

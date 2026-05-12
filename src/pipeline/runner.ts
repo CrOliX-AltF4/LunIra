@@ -10,6 +10,8 @@ import { SkillRegistry } from '../skills/registry.js';
 import { PluginRegistry } from '../plugins/registry.js';
 import type { Skill } from '../skills/types.js';
 import type { Plugin } from '../plugins/types.js';
+import { loadExternalSkill, discoverNpmSkills } from '../skills/loader.js';
+import { loadExternalPlugin, discoverNpmPlugins } from '../plugins/loader.js';
 
 // ─── Pipeline preload ─────────────────────────────────────────────────────────
 // Allows callers to inject agent outputs before the pipeline runs.
@@ -94,8 +96,19 @@ export async function runPipeline(
   let pluginRegistry: PluginRegistry;
   try {
     projectConfig = await loadProjectConfig(process.cwd());
-    skillRegistry = new SkillRegistry();
-    pluginRegistry = new PluginRegistry();
+
+    const externalSkillPaths = projectConfig.skills.external ?? [];
+    const externalPluginPaths = projectConfig.plugins.external ?? [];
+
+    const [externalSkills, npmSkills, externalPlugins, npmPlugins] = await Promise.all([
+      Promise.all(externalSkillPaths.map((p) => loadExternalSkill(p, process.cwd()))),
+      discoverNpmSkills(process.cwd()),
+      Promise.all(externalPluginPaths.map((p) => loadExternalPlugin(p, process.cwd()))),
+      discoverNpmPlugins(process.cwd()),
+    ]);
+
+    skillRegistry = new SkillRegistry([...externalSkills, ...npmSkills]);
+    pluginRegistry = new PluginRegistry([...externalPlugins, ...npmPlugins]);
   } catch (initErr) {
     run.status = 'failed';
     for (let i = 0; i < run.steps.length; i++) {

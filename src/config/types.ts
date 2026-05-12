@@ -1,7 +1,15 @@
 import type { AgentRole } from '../types/index.js';
 
+export interface SkillsConfig extends Partial<Record<AgentRole | 'all', string[]>> {
+  external?: string[];
+}
+
+export interface PluginsConfig extends Partial<Record<AgentRole | 'all', string[]>> {
+  external?: string[];
+}
+
 export interface ProjectConfig {
-  skills: Partial<Record<AgentRole | 'all', string[]>>;
-  plugins: Partial<Record<AgentRole | 'all', string[]>>;
+  skills: SkillsConfig;
+  plugins: PluginsConfig;
   models?: Partial<Record<AgentRole, string>>;
 }

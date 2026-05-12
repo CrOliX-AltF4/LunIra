@@ -25,11 +25,14 @@ const CATALOG: Omit<Skill, 'content' | 'tokenEstimate'>[] = [
 export class SkillRegistry {
   private readonly skills: Skill[];
 
-  constructor() {
-    this.skills = CATALOG.map((entry) => {
-      const content = loadMd(`${entry.id}.md`);
-      return { ...entry, content, tokenEstimate: estimateTokens(content) };
-    });
+  constructor(externals: Skill[] = []) {
+    this.skills = [
+      ...CATALOG.map((entry) => {
+        const content = loadMd(`${entry.id}.md`);
+        return { ...entry, content, tokenEstimate: estimateTokens(content) };
+      }),
+      ...externals,
+    ];
   }
 
   getAll(): Skill[] {

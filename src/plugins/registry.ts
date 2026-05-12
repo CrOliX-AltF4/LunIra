@@ -13,7 +13,11 @@ const CATALOG: Plugin[] = [
 ];
 
 export class PluginRegistry {
-  private readonly plugins = CATALOG;
+  private readonly plugins: Plugin[];
+
+  constructor(externals: Plugin[] = []) {
+    this.plugins = [...CATALOG, ...externals];
+  }
 
   getAll(): Plugin[] {
     return this.plugins;
