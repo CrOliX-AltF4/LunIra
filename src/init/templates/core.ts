@@ -106,9 +106,9 @@ const CI_YML = `name: CI
 
 on:
   push:
-    branches: [main, dev]
+    branches: [master]
   pull_request:
-    branches: [main, dev]
+    branches: [master]
 
 jobs:
   ci:
@@ -290,3 +290,62 @@ ${excludeLine}    },
 });
 `;
 }
+
+// ─── lunatar.config.json ──────────────────────────────────────────────────────
+
+export function lunatarConfig(): string {
+  return JSON.stringify(
+    {
+      skills: {
+        all: ['typescript-strict', 'conventional-commits'],
+        po: [],
+        planner: [],
+        dev: [],
+        qa: [],
+        external: [],
+      },
+      plugins: {
+        all: [],
+        po: [],
+        planner: [],
+        dev: ['read-file', 'file-write'],
+        qa: [],
+        external: [],
+      },
+    },
+    null,
+    2,
+  );
+}
+
+// ─── README.md ─────────────────────────────────────────────────────────────────
+
+export function readmeMd(name: string, type: ProjectType): string {
+  return render(README_TEMPLATE, { name, type });
+}
+
+const README_TEMPLATE = `# {{name}}
+
+> {{type}} project — scaffolded with [lunatar](https://github.com/CrOliX-AltF4/AI-Dev-Workbench-CLI)
+
+## Usage
+
+\`\`\`bash
+lunatar run "<describe what you want to build>"
+\`\`\`
+
+## Development
+
+\`\`\`bash
+npm install       # install dependencies
+npm run dev       # start in development mode
+npm run build     # compile to dist/
+npm test          # run tests
+npm run lint      # lint
+npm run typecheck # type check
+\`\`\`
+
+## Stack
+
+See \`AGENTS.md\` for agent roles and model configuration.
+`;
