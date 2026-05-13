@@ -34,10 +34,19 @@ program
     '--from-po <source>',
     'inject PO output JSON from a file or stdin ("-"); auto-skips PO agent',
   )
+  .option('--output <dir>', 'write Dev-generated files to this directory after the run')
+  .option('--workspace', 'inject cwd, package.json and git status into the PO context')
   .action(
     async (
       intent?: string,
-      opts?: { json?: boolean; skip?: string; dry?: boolean; fromPo?: string },
+      opts?: {
+        json?: boolean;
+        skip?: string;
+        dry?: boolean;
+        fromPo?: string;
+        output?: string;
+        workspace?: boolean;
+      },
     ) => {
       await runCommand({
         ...(intent ? { intent } : {}),
@@ -45,6 +54,8 @@ program
         ...(opts?.skip ? { skip: opts.skip } : {}),
         ...(opts?.dry ? { dry: true } : {}),
         ...(opts?.fromPo ? { fromPo: opts.fromPo } : {}),
+        ...(opts?.output ? { output: opts.output } : {}),
+        ...(opts?.workspace ? { workspace: true } : {}),
       });
     },
   );

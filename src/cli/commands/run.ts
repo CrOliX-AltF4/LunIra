@@ -6,9 +6,11 @@ import { buildDefaultSteps, parseSkipRoles } from '../../pipeline/steps.js';
 import type { PipelinePreload } from '../../pipeline/index.js';
 import { getModelById } from '../../models/catalog.js';
 import * as orchestrator from '../../orchestrator/index.js';
-import type { POOutput } from '../../agents/types.js';
+import type { POOutput, CodeFile } from '../../agents/types.js';
 import type { AgentRole, PipelineStep } from '../../types/index.js';
 import type { PipelineEvent } from '../../types/events.js';
+import { gatherWorkspaceContext } from '../workspace-context.js';
+import { writeOutputFiles } from '../output-writer.js';
 
 // ─── Shared role labels for progress output ───────────────────────────────────
 
@@ -27,6 +29,8 @@ interface RunOptions {
   skip?: string;
   dry?: boolean;
   fromPo?: string;
+  output?: string;
+  workspace?: boolean;
 }
 
 // ─── PO output loader ─────────────────────────────────────────────────────────
@@ -182,6 +186,7 @@ async function headlessRun(
   intent: string,
   skipRoles: ReadonlySet<AgentRole>,
   fromPoPayload?: FromPoPayload,
+  outputDir?: string,
 ): Promise<void> {
   const steps = buildDefaultSteps(skipRoles);
   const total = steps.length;
@@ -232,6 +237,23 @@ async function headlessRun(
     `\nDone — status: ${run.status} · $${run.totalCostUsd.toFixed(4)} · ${run.totalTokens.toLocaleString()} tok · ${(run.totalDurationMs / 1000).toFixed(1)}s\n`,
   );
 
+  // Write generated files to disk if --output was given
+  if (outputDir) {
+    const devStep = run.steps.find((s) => s.role === 'dev' && s.status === 'completed');
+    if (devStep?.output) {
+      try {
+        const devOutput = JSON.parse(devStep.output) as { files?: CodeFile[] };
+        if (Array.isArray(devOutput.files) && devOutput.files.length > 0) {
+          const written = await writeOutputFiles(devOutput.files, outputDir);
+          process.stderr.write(`\nWrote ${written.length.toString()} file(s) to ${outputDir}:\n`);
+          for (const p of written) process.stderr.write(`  ${p}\n`);
+        }
+      } catch {
+        process.stderr.write(`\nWarning: could not parse dev output for --output\n`);
+      }
+    }
+  }
+
   process.stdout.write(
     JSON.stringify({ type: 'run_completed', run } satisfies PipelineEvent) + '\n',
   );
@@ -270,24 +292,31 @@ export async function runCommand(options: RunOptions): Promise<void> {
     skipRoles.add('po');
   }
 
+  // ── Apply --workspace context ───────────────────────────────────────────────
+  let resolvedIntent = options.intent;
+  if (options.workspace) {
+    const wsCtx = await gatherWorkspaceContext(process.cwd());
+    resolvedIntent = resolvedIntent ? `${wsCtx}\n\nTask: ${resolvedIntent}` : wsCtx;
+  }
+
   // ── Dry run ─────────────────────────────────────────────────────────────────
   if (options.dry) {
-    dryRun(options.intent, skipRoles);
+    dryRun(resolvedIntent, skipRoles);
     return;
   }
 
   // ── Headless JSON mode ──────────────────────────────────────────────────────
-  if (options.json) {
-    if (!options.intent) {
+  if (options.json || options.output) {
+    if (!resolvedIntent) {
       process.stderr.write(
-        'Error: --json requires an intent argument. Example: lunatar run "build a REST API" --json\n',
+        'Error: --json / --output requires an intent argument. Example: lunatar run "build a REST API" --json\n',
       );
       process.exit(1);
     }
-    await headlessRun(options.intent, skipRoles, fromPoPayload);
+    await headlessRun(resolvedIntent, skipRoles, fromPoPayload, options.output);
     return;
   }
 
   // ── TUI mode ────────────────────────────────────────────────────────────────
-  await tuiRun(options.intent, skipRoles);
+  await tuiRun(resolvedIntent, skipRoles);
 }
