@@ -13,6 +13,7 @@ import type { Plugin } from '../plugins/types.js';
 import { loadExternalSkill, discoverNpmSkills } from '../skills/loader.js';
 import { loadExternalPlugin, discoverNpmPlugins } from '../plugins/loader.js';
 import { isRetriableError } from './errors.js';
+import type { PipelineEvent } from '../types/events.js';
 
 // ─── Pipeline preload ─────────────────────────────────────────────────────────
 // Allows callers to inject agent outputs before the pipeline runs.
@@ -21,6 +22,10 @@ import { isRetriableError } from './errors.js';
 export interface PipelinePreload {
   /** Pre-computed PO output. Combined with --skip po to bypass the PO agent. */
   po?: POOutput;
+  /** Working directory of the calling process (e.g. Natsume project root). */
+  cwd?: string;
+  /** Project type detected by the caller (e.g. 'frontend', 'fullstack', 'cli'). */
+  projectType?: string;
 }
 
 // ─── Pipeline override ────────────────────────────────────────────────────────
@@ -58,6 +63,7 @@ export async function runPipeline(
   onUpdate?: (step: PipelineStep) => void,
   preload?: PipelinePreload,
   override?: PipelineOverride,
+  onEvent?: (event: PipelineEvent) => void,
 ): Promise<PipelineRun> {
   const run: PipelineRun = {
     id: randomUUID(),
@@ -139,6 +145,7 @@ export async function runPipeline(
     // Steps pre-marked as skipped are bypassed — notify and move on.
     if (step.status === 'skipped') {
       onUpdate?.(step);
+      onEvent?.({ type: 'step_skipped', stepId: step.id, role: step.role });
       continue;
     }
 
@@ -153,7 +160,10 @@ export async function runPipeline(
     let lastError: unknown;
     let succeeded = false;
 
-    for (const providerName of providerChain) {
+    for (let attempt = 0; attempt < providerChain.length; attempt++) {
+      const providerName = providerChain[attempt];
+      if (!providerName) continue;
+
       const provider = getProvider(providerName);
 
       if (!provider.isConfigured()) {
@@ -162,7 +172,26 @@ export async function runPipeline(
         break;
       }
 
+      if (attempt > 0) {
+        const prevProvider = providerChain[attempt - 1];
+        if (prevProvider) {
+          onEvent?.({
+            type: 'provider_switched',
+            stepId: step.id,
+            from: prevProvider,
+            to: providerName,
+          });
+        }
+      }
+
       patch(i, { status: 'running' });
+      onEvent?.({
+        type: 'step_started',
+        stepId: step.id,
+        role: step.role,
+        provider: providerName,
+        modelId,
+      });
 
       try {
         switch (step.role) {
@@ -179,7 +208,9 @@ export async function runPipeline(
               },
             );
             ctx.po = output;
-            patch(i, applyMeta('completed', output, meta, poSkills));
+            const poChanges = applyMeta('completed', output, meta, poSkills);
+            patch(i, poChanges);
+            emitStepCompleted(step, poChanges, onEvent);
             break;
           }
 
@@ -194,7 +225,9 @@ export async function runPipeline(
               ...(plannerPlugins.length > 0 ? { plugins: plannerPlugins } : {}),
             });
             ctx.planner = output;
-            patch(i, applyMeta('completed', output, meta, plannerSkills));
+            const plannerChanges = applyMeta('completed', output, meta, plannerSkills);
+            patch(i, plannerChanges);
+            emitStepCompleted(step, plannerChanges, onEvent);
             break;
           }
 
@@ -210,7 +243,9 @@ export async function runPipeline(
               ...(devPlugins.length > 0 ? { plugins: devPlugins } : {}),
             });
             ctx.dev = output;
-            patch(i, applyMeta('completed', output, meta, devSkills));
+            const devChanges = applyMeta('completed', output, meta, devSkills);
+            patch(i, devChanges);
+            emitStepCompleted(step, devChanges, onEvent);
             break;
           }
 
@@ -226,7 +261,9 @@ export async function runPipeline(
               ...(qaPlugins.length > 0 ? { plugins: qaPlugins } : {}),
             });
             ctx.qa = output;
-            patch(i, applyMeta('completed', output, meta, qaSkills));
+            const qaChanges = applyMeta('completed', output, meta, qaSkills);
+            patch(i, qaChanges);
+            emitStepCompleted(step, qaChanges, onEvent);
             break;
           }
         }
@@ -240,7 +277,9 @@ export async function runPipeline(
     }
 
     if (!succeeded) {
-      patch(i, { status: 'failed', error: String(lastError) });
+      const errMsg = String(lastError instanceof Error ? lastError.message : lastError);
+      patch(i, { status: 'failed', error: errMsg });
+      onEvent?.({ type: 'step_failed', stepId: step.id, role: step.role, error: errMsg });
       skipRemaining(run, i + 1, patch);
       run.status = 'failed';
       break;
@@ -280,6 +319,25 @@ function applyMeta(
     skillsTokens,
     ...(Object.keys(pluginsCallsMap).length > 0 ? { pluginsCalls: pluginsCallsMap } : {}),
   };
+}
+
+function emitStepCompleted(
+  step: PipelineStep,
+  appliedChanges: Partial<PipelineStep>,
+  onEvent?: (event: PipelineEvent) => void,
+): void {
+  onEvent?.({
+    type: 'step_completed',
+    stepId: step.id,
+    role: step.role,
+    costUsd: appliedChanges.costUsd ?? 0,
+    tokensUsed: appliedChanges.tokensUsed ?? 0,
+    durationMs: appliedChanges.durationMs ?? 0,
+  });
+
+  for (const [pluginId, callCount] of Object.entries(appliedChanges.pluginsCalls ?? {})) {
+    onEvent?.({ type: 'plugin_called', stepId: step.id, pluginId, callCount });
+  }
 }
 
 function skipRemaining(

@@ -56,6 +56,7 @@ describe('orchestrator.run()', () => {
       undefined,
       undefined,
       undefined,
+      undefined,
     );
   });
 
@@ -68,6 +69,20 @@ describe('orchestrator.run()', () => {
       onUpdate,
       undefined,
       undefined,
+      undefined,
+    );
+  });
+
+  it('forwards the onEvent callback to runPipeline', async () => {
+    const onEvent = vi.fn();
+    await run('Build a CLI', STEPS, undefined, undefined, undefined, onEvent);
+    expect(mockRunPipeline).toHaveBeenCalledWith(
+      'Build a CLI',
+      STEPS,
+      undefined,
+      undefined,
+      undefined,
+      onEvent,
     );
   });
 });

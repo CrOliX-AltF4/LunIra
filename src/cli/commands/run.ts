@@ -3,10 +3,12 @@ import { render } from 'ink';
 import React from 'react';
 import { App } from '../../ui/App.js';
 import { buildDefaultSteps, parseSkipRoles } from '../../pipeline/steps.js';
+import type { PipelinePreload } from '../../pipeline/index.js';
 import { getModelById } from '../../models/catalog.js';
 import * as orchestrator from '../../orchestrator/index.js';
 import type { POOutput } from '../../agents/types.js';
 import type { AgentRole, PipelineStep } from '../../types/index.js';
+import type { PipelineEvent } from '../../types/events.js';
 
 // ─── Shared role labels for progress output ───────────────────────────────────
 
@@ -29,11 +31,17 @@ interface RunOptions {
 
 // ─── PO output loader ─────────────────────────────────────────────────────────
 
+interface FromPoPayload {
+  po: POOutput;
+  cwd?: string;
+  projectType?: string;
+}
+
 /**
  * Reads and validates a POOutput from a file path or stdin ('-').
  * Validates that required fields are present — throws on invalid input.
  */
-async function loadPoOutput(source: string): Promise<POOutput> {
+async function loadPoOutput(source: string): Promise<FromPoPayload> {
   let raw: string;
   if (source === '-') {
     const chunks: Buffer[] = [];
@@ -64,7 +72,11 @@ async function loadPoOutput(source: string): Promise<POOutput> {
     throw new Error(`--from-po: missing required field(s): ${missing.join(', ')}`);
   }
 
-  return parsed as POOutput;
+  return {
+    po: parsed as POOutput,
+    ...(typeof obj['cwd'] === 'string' ? { cwd: obj['cwd'] } : {}),
+    ...(typeof obj['projectType'] === 'string' ? { projectType: obj['projectType'] } : {}),
+  };
 }
 
 // ─── Token estimates per role (medium complexity baseline) ────────────────────
@@ -169,7 +181,7 @@ async function tuiRun(intent?: string, skipRoles?: ReadonlySet<AgentRole>): Prom
 async function headlessRun(
   intent: string,
   skipRoles: ReadonlySet<AgentRole>,
-  poOutput?: POOutput,
+  fromPoPayload?: FromPoPayload,
 ): Promise<void> {
   const steps = buildDefaultSteps(skipRoles);
   const total = steps.length;
@@ -202,14 +214,27 @@ async function headlessRun(
     }
   };
 
-  const preload = poOutput ? { po: poOutput } : undefined;
-  const run = await orchestrator.run(intent, steps, onUpdate, preload);
+  const onEvent = (event: PipelineEvent): void => {
+    process.stdout.write(JSON.stringify(event) + '\n');
+  };
+
+  const preload: PipelinePreload | undefined = fromPoPayload
+    ? {
+        po: fromPoPayload.po,
+        ...(fromPoPayload.cwd ? { cwd: fromPoPayload.cwd } : {}),
+        ...(fromPoPayload.projectType ? { projectType: fromPoPayload.projectType } : {}),
+      }
+    : undefined;
+
+  const run = await orchestrator.run(intent, steps, onUpdate, preload, undefined, onEvent);
 
   process.stderr.write(
     `\nDone — status: ${run.status} · $${run.totalCostUsd.toFixed(4)} · ${run.totalTokens.toLocaleString()} tok · ${(run.totalDurationMs / 1000).toFixed(1)}s\n`,
   );
 
-  process.stdout.write(JSON.stringify(run, null, 2) + '\n');
+  process.stdout.write(
+    JSON.stringify({ type: 'run_completed', run } satisfies PipelineEvent) + '\n',
+  );
 
   if (run.status === 'failed') {
     process.exit(1);
@@ -232,11 +257,11 @@ export async function runCommand(options: RunOptions): Promise<void> {
   }
 
   // ── Load --from-po input ────────────────────────────────────────────────────
-  let poOutput: POOutput | undefined;
+  let fromPoPayload: FromPoPayload | undefined;
 
   if (options.fromPo) {
     try {
-      poOutput = await loadPoOutput(options.fromPo);
+      fromPoPayload = await loadPoOutput(options.fromPo);
     } catch (err) {
       process.stderr.write(`${String(err)}\n`);
       process.exit(1);
@@ -259,7 +284,7 @@ export async function runCommand(options: RunOptions): Promise<void> {
       );
       process.exit(1);
     }
-    await headlessRun(options.intent, skipRoles, poOutput);
+    await headlessRun(options.intent, skipRoles, fromPoPayload);
     return;
   }
 
