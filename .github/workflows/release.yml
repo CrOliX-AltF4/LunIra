@@ -31,11 +31,8 @@ jobs:
           node-version: 22
           cache: npm
 
-      - name: Install npm 11 via corepack
-        run: |
-          corepack enable
-          corepack prepare "npm@^11" --activate
-          echo "$(corepack home)/shims" >> "$GITHUB_PATH"
+      - name: Upgrade npm
+        run: npm install -g npm@latest
 
       - name: Install dependencies
         run: npm ci
@@ -51,13 +48,6 @@ jobs:
         with:
           tag_name: ${{ inputs.tag || github.ref_name }}
           generate_release_notes: true
-
-      - name: Debug npm auth
-        run: |
-          which npm
-          npm --version
-          npm config list
-          echo "OIDC URL: ${ACTIONS_ID_TOKEN_REQUEST_URL:-not set}"
 
       - name: Publish to npm
         run: npm publish --provenance --access public
