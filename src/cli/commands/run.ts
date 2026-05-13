@@ -30,11 +30,17 @@ interface RunOptions {
 
 // ─── PO output loader ─────────────────────────────────────────────────────────
 
+interface FromPoPayload {
+  po: POOutput;
+  cwd?: string;
+  projectType?: string;
+}
+
 /**
  * Reads and validates a POOutput from a file path or stdin ('-').
  * Validates that required fields are present — throws on invalid input.
  */
-async function loadPoOutput(source: string): Promise<POOutput> {
+async function loadPoOutput(source: string): Promise<FromPoPayload> {
   let raw: string;
   if (source === '-') {
     const chunks: Buffer[] = [];
@@ -65,7 +71,11 @@ async function loadPoOutput(source: string): Promise<POOutput> {
     throw new Error(`--from-po: missing required field(s): ${missing.join(', ')}`);
   }
 
-  return parsed as POOutput;
+  return {
+    po: parsed as POOutput,
+    ...(typeof obj['cwd'] === 'string' ? { cwd: obj['cwd'] } : {}),
+    ...(typeof obj['projectType'] === 'string' ? { projectType: obj['projectType'] } : {}),
+  };
 }
 
 // ─── Token estimates per role (medium complexity baseline) ────────────────────
@@ -170,7 +180,7 @@ async function tuiRun(intent?: string, skipRoles?: ReadonlySet<AgentRole>): Prom
 async function headlessRun(
   intent: string,
   skipRoles: ReadonlySet<AgentRole>,
-  poOutput?: POOutput,
+  fromPoPayload?: FromPoPayload,
 ): Promise<void> {
   const steps = buildDefaultSteps(skipRoles);
   const total = steps.length;
@@ -207,7 +217,14 @@ async function headlessRun(
     process.stdout.write(JSON.stringify(event) + '\n');
   };
 
-  const preload = poOutput ? { po: poOutput } : undefined;
+  const preload = fromPoPayload
+    ? {
+        po: fromPoPayload.po,
+        cwd: fromPoPayload.cwd,
+        projectType: fromPoPayload.projectType,
+      }
+    : undefined;
+
   const run = await orchestrator.run(intent, steps, onUpdate, preload, undefined, onEvent);
 
   process.stderr.write(
@@ -239,11 +256,11 @@ export async function runCommand(options: RunOptions): Promise<void> {
   }
 
   // ── Load --from-po input ────────────────────────────────────────────────────
-  let poOutput: POOutput | undefined;
+  let fromPoPayload: FromPoPayload | undefined;
 
   if (options.fromPo) {
     try {
-      poOutput = await loadPoOutput(options.fromPo);
+      fromPoPayload = await loadPoOutput(options.fromPo);
     } catch (err) {
       process.stderr.write(`${String(err)}\n`);
       process.exit(1);
@@ -266,7 +283,7 @@ export async function runCommand(options: RunOptions): Promise<void> {
       );
       process.exit(1);
     }
-    await headlessRun(options.intent, skipRoles, poOutput);
+    await headlessRun(options.intent, skipRoles, fromPoPayload);
     return;
   }
 

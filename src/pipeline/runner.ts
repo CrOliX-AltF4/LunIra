@@ -22,6 +22,10 @@ import type { PipelineEvent } from '../types/events.js';
 export interface PipelinePreload {
   /** Pre-computed PO output. Combined with --skip po to bypass the PO agent. */
   po?: POOutput;
+  /** Working directory of the calling process (e.g. Natsume project root). */
+  cwd?: string;
+  /** Project type detected by the caller (e.g. 'frontend', 'fullstack', 'cli'). */
+  projectType?: string;
 }
 
 // ─── Pipeline override ────────────────────────────────────────────────────────
