@@ -20,6 +20,10 @@ const CATALOG: Omit<Skill, 'content' | 'tokenEstimate'>[] = [
   { id: 'conventional-commits', name: 'Conventional Commits', role: 'all', cacheable: true },
   { id: 'project-context', name: 'Project Context', role: 'all', cacheable: false },
   { id: 'laravel-conventions', name: 'Laravel Conventions', role: 'dev', cacheable: true },
+  { id: 'test-conventions', name: 'Testing Conventions', role: 'all', cacheable: true },
+  { id: 'api-design', name: 'REST API Design', role: 'all', cacheable: true },
+  { id: 'i18n', name: 'Internationalisation', role: 'all', cacheable: true },
+  { id: 'security', name: 'Security Best Practices', role: 'all', cacheable: true },
 ];
 
 export class SkillRegistry {

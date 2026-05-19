@@ -11,6 +11,7 @@ import { historyCommand } from './commands/history.js';
 import { setupCommand } from './commands/setup.js';
 import { configCommand } from './commands/config.js';
 import { initCommand } from './commands/init.js';
+import { catalogCommand } from './commands/catalog.js';
 
 const require = createRequire(import.meta.url);
 const { version } = require('../package.json') as { version: string };
@@ -105,6 +106,15 @@ program
   .option('--dir <path>', 'target directory (defaults to ./<name>)')
   .action(async (opts: { name?: string; type?: string; skipInstall?: boolean; dir?: string }) => {
     await initCommand(opts);
+  });
+
+// ─── catalog ──────────────────────────────────────────────────────────────────
+
+program
+  .command('catalog')
+  .description('List all built-in and installed skills and plugins')
+  .action(() => {
+    catalogCommand();
   });
 
 // ─── Default: open prompt screen ─────────────────────────────────────────────

@@ -4,12 +4,18 @@ import { fileWritePlugin } from './catalog/file-write.js';
 import { readFilePlugin } from './catalog/read-file.js';
 import { webSearchPlugin } from './catalog/web-search.js';
 import { githubCreateIssuePlugin } from './catalog/github-create-issue.js';
+import { runCommandPlugin } from './catalog/run-command.js';
+import { listDirectoryPlugin } from './catalog/list-directory.js';
+import { createDirectoryPlugin } from './catalog/create-directory.js';
 
 const CATALOG: Plugin[] = [
   fileWritePlugin,
   readFilePlugin,
   webSearchPlugin,
   githubCreateIssuePlugin,
+  runCommandPlugin,
+  listDirectoryPlugin,
+  createDirectoryPlugin,
 ];
 
 export class PluginRegistry {
