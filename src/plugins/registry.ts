@@ -7,6 +7,7 @@ import { githubCreateIssuePlugin } from './catalog/github-create-issue.js';
 import { runCommandPlugin } from './catalog/run-command.js';
 import { listDirectoryPlugin } from './catalog/list-directory.js';
 import { createDirectoryPlugin } from './catalog/create-directory.js';
+import { executeCodePlugin } from './catalog/execute-code.js';
 
 const CATALOG: Plugin[] = [
   fileWritePlugin,
@@ -16,6 +17,7 @@ const CATALOG: Plugin[] = [
   runCommandPlugin,
   listDirectoryPlugin,
   createDirectoryPlugin,
+  executeCodePlugin,
 ];
 
 export class PluginRegistry {
