@@ -20,7 +20,7 @@ vi.mock('../../src/plugins/loader.js', () => ({
   discoverNpmPlugins: () => Promise.resolve([]),
 }));
 
-const { getProvider } = await import('../../src/providers/registry.js');
+const { getProvider, getConfiguredProviders } = await import('../../src/providers/registry.js');
 const { runPOAgent, runPlannerAgent, runDevAgent, runQAAgent } =
   await import('../../src/agents/index.js');
 const { runPipeline } = await import('../../src/pipeline/runner.js');
@@ -28,6 +28,7 @@ const { buildDefaultSteps } = await import('../../src/pipeline/steps.js');
 const { loadProjectConfig } = await import('../../src/config/project.js');
 
 const mockGetProvider = vi.mocked(getProvider);
+const mockGetConfiguredProviders = vi.mocked(getConfiguredProviders);
 const mockRunPO = vi.mocked(runPOAgent);
 const mockRunPlanner = vi.mocked(runPlannerAgent);
 const mockRunDev = vi.mocked(runDevAgent);
@@ -89,6 +90,7 @@ const DEFAULT_CONFIG = {
 beforeEach(() => {
   vi.clearAllMocks();
   mockGetProvider.mockReturnValue(makeProvider(true));
+  mockGetConfiguredProviders.mockReturnValue([]);
   mockLoadProjectConfig.mockResolvedValue(DEFAULT_CONFIG);
   mockRunPO.mockResolvedValue(makeAgentResult(0.01, PO_OUTPUT));
   mockRunPlanner.mockResolvedValue(makeAgentResult(0.01, PLANNER_OUTPUT));

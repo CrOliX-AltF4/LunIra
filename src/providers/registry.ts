@@ -5,6 +5,8 @@ import { GeminiProvider } from './gemini.js';
 import { ClaudeProvider } from './claude.js';
 import { OpenAIProvider } from './openai.js';
 import { NimProvider } from './nim.js';
+import { OpenRouterProvider } from './openrouter.js';
+import { OllamaProvider } from './ollama.js';
 
 // ─── Registry ─────────────────────────────────────────────────────────────────
 
@@ -31,6 +33,12 @@ function getInstance(name: ProviderName): LLMProvider {
     case 'nim':
       provider = new NimProvider();
       break;
+    case 'openrouter':
+      provider = new OpenRouterProvider();
+      break;
+    case 'ollama':
+      provider = new OllamaProvider();
+      break;
   }
 
   instances.set(name, provider);
@@ -42,7 +50,15 @@ export function getProvider(name: ProviderName): LLMProvider {
 }
 
 export function getAllProviders(): LLMProvider[] {
-  const names: ProviderName[] = ['groq', 'gemini', 'claude', 'openai', 'nim'];
+  const names: ProviderName[] = [
+    'groq',
+    'gemini',
+    'claude',
+    'openai',
+    'nim',
+    'openrouter',
+    'ollama',
+  ];
   return names.map(getInstance);
 }
 

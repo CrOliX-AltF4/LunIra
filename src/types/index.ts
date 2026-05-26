@@ -4,7 +4,14 @@ export type AgentRole = 'po' | 'planner' | 'dev' | 'qa';
 
 // ─── LLM providers ───────────────────────────────────────────────────────────
 
-export type ProviderName = 'groq' | 'gemini' | 'claude' | 'openai' | 'nim';
+export type ProviderName =
+  | 'groq'
+  | 'gemini'
+  | 'claude'
+  | 'openai'
+  | 'nim'
+  | 'openrouter'
+  | 'ollama';
 
 // ─── Task types ───────────────────────────────────────────────────────────────
 

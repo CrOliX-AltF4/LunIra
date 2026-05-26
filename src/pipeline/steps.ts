@@ -20,7 +20,7 @@ const AGENT_SEQUENCE: Array<{ role: AgentRole; taskType: TaskType }> = [
  * Used by both the TUI (PipelineScreen) and the headless CLI runner.
  */
 export function buildDefaultSteps(skipRoles: ReadonlySet<AgentRole> = new Set()): PipelineStep[] {
-  const configured = getConfiguredProviders() ?? [];
+  const configured = getConfiguredProviders();
   const allowedProviders = configured.length > 0 ? configured.map((p) => p.name) : undefined;
 
   return AGENT_SEQUENCE.map(({ role, taskType }) => {

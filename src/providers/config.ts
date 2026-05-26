@@ -33,6 +33,8 @@ const ENV_KEYS: Record<ProviderName, string[]> = {
   claude: ['ANTHROPIC_API_KEY'],
   openai: ['OPENAI_API_KEY'],
   nim: ['NIM_API_KEY', 'NVIDIA_API_KEY'],
+  openrouter: ['OPENROUTER_API_KEY'],
+  ollama: [],
 };
 
 export function getApiKey(provider: ProviderName): string | undefined {
@@ -62,6 +64,14 @@ export function removeApiKey(provider: ProviderName): void {
 }
 
 export function listConfiguredProviders(): ProviderName[] {
-  const providers: ProviderName[] = ['groq', 'gemini', 'claude', 'openai', 'nim'];
+  const providers: ProviderName[] = [
+    'groq',
+    'gemini',
+    'claude',
+    'openai',
+    'nim',
+    'openrouter',
+    'ollama',
+  ];
   return providers.filter((p) => !!getApiKey(p));
 }
