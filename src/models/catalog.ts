@@ -135,6 +135,92 @@ export const MODEL_CATALOG: ModelSpec[] = [
     avgLatencyMs: 2000,
     strengths: ['code', 'analysis', 'clarification'],
   },
+
+  // ── OpenRouter ────────────────────────────────────────────────────────────────
+  // Curated models accessible with a single OpenRouter API key.
+  {
+    id: 'meta-llama/llama-3.3-70b-instruct:free',
+    provider: 'openrouter',
+    displayName: 'Llama 3.3 70B (OR free)',
+    contextWindow: 128_000,
+    costPerInputToken: 0,
+    costPerOutputToken: 0,
+    avgLatencyMs: 1500,
+    strengths: ['clarification', 'analysis', 'debug'],
+  },
+  {
+    id: 'mistralai/mistral-small-3.2-24b-instruct:free',
+    provider: 'openrouter',
+    displayName: 'Mistral Small 3.2 (OR free)',
+    contextWindow: 128_000,
+    costPerInputToken: 0,
+    costPerOutputToken: 0,
+    avgLatencyMs: 1200,
+    strengths: ['clarification', 'analysis'],
+  },
+  {
+    id: 'google/gemini-2.5-flash',
+    provider: 'openrouter',
+    displayName: 'Gemini 2.5 Flash (OR)',
+    contextWindow: 1_048_576,
+    costPerInputToken: 0.00000015,
+    costPerOutputToken: 0.0000006,
+    avgLatencyMs: 1500,
+    strengths: ['architecture', 'analysis', 'code'],
+  },
+  {
+    id: 'anthropic/claude-sonnet-4-5',
+    provider: 'openrouter',
+    displayName: 'Claude Sonnet 4.5 (OR)',
+    contextWindow: 200_000,
+    costPerInputToken: 0.000003,
+    costPerOutputToken: 0.000015,
+    avgLatencyMs: 2500,
+    strengths: ['code', 'architecture', 'analysis'],
+  },
+  {
+    id: 'deepseek/deepseek-r1-0528:free',
+    provider: 'openrouter',
+    displayName: 'DeepSeek R1 (OR free)',
+    contextWindow: 163_840,
+    costPerInputToken: 0,
+    costPerOutputToken: 0,
+    avgLatencyMs: 3500,
+    strengths: ['code', 'architecture', 'analysis'],
+  },
+
+  // ── Ollama (local) ────────────────────────────────────────────────────────────
+  // Requires Ollama running on localhost:11434. Latency estimates for a mid-range GPU.
+  {
+    id: 'llama3.2',
+    provider: 'ollama',
+    displayName: 'Llama 3.2 (local)',
+    contextWindow: 128_000,
+    costPerInputToken: 0,
+    costPerOutputToken: 0,
+    avgLatencyMs: 2000,
+    strengths: ['clarification', 'analysis'],
+  },
+  {
+    id: 'qwen2.5-coder',
+    provider: 'ollama',
+    displayName: 'Qwen 2.5 Coder (local)',
+    contextWindow: 128_000,
+    costPerInputToken: 0,
+    costPerOutputToken: 0,
+    avgLatencyMs: 3000,
+    strengths: ['code'],
+  },
+  {
+    id: 'deepseek-r1',
+    provider: 'ollama',
+    displayName: 'DeepSeek R1 (local)',
+    contextWindow: 128_000,
+    costPerInputToken: 0,
+    costPerOutputToken: 0,
+    avgLatencyMs: 4000,
+    strengths: ['code', 'architecture', 'analysis'],
+  },
 ];
 
 // ─── Default model per role ───────────────────────────────────────────────────
