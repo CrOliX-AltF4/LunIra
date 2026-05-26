@@ -1,5 +1,7 @@
 import { getDefaultModel } from '../models/catalog.js';
-import type { AgentRole, PipelineStep, ProviderName, TaskType } from '../types/index.js';
+import { getConfiguredProviders } from '../providers/registry.js';
+import { recommend } from '../models/recommender.js';
+import type { AgentRole, ModelSpec, PipelineStep, ProviderName, TaskType } from '../types/index.js';
 
 // ─── Agent sequence ───────────────────────────────────────────────────────────
 
@@ -18,8 +20,17 @@ const AGENT_SEQUENCE: Array<{ role: AgentRole; taskType: TaskType }> = [
  * Used by both the TUI (PipelineScreen) and the headless CLI runner.
  */
 export function buildDefaultSteps(skipRoles: ReadonlySet<AgentRole> = new Set()): PipelineStep[] {
+  const configured = getConfiguredProviders() ?? [];
+  const allowedProviders = configured.length > 0 ? configured.map((p) => p.name) : undefined;
+
   return AGENT_SEQUENCE.map(({ role, taskType }) => {
-    const model = getDefaultModel(role);
+    let model: ModelSpec;
+    if (allowedProviders && allowedProviders.length > 0) {
+      const rec = recommend({ role, taskType, complexity: 'medium', allowedProviders });
+      model = rec.recommended;
+    } else {
+      model = getDefaultModel(role);
+    }
     return {
       id: role,
       role,

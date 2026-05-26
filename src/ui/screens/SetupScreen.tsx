@@ -16,14 +16,14 @@ interface ProviderInfo {
 }
 
 const PROVIDERS: ProviderInfo[] = [
-  { name: 'groq', label: 'Groq', url: 'console.groq.com', free: true, envVar: 'GROQ_API_KEY' },
   {
-    name: 'gemini',
-    label: 'Gemini',
-    url: 'aistudio.google.com',
+    name: 'openrouter',
+    label: 'OpenRouter',
+    url: 'openrouter.ai',
     free: true,
-    envVar: 'GOOGLE_API_KEY',
+    envVar: 'OPENROUTER_API_KEY',
   },
+  { name: 'groq', label: 'Groq', url: 'console.groq.com', free: true, envVar: 'GROQ_API_KEY' },
   {
     name: 'claude',
     label: 'Claude',
@@ -39,11 +39,25 @@ const PROVIDERS: ProviderInfo[] = [
     envVar: 'OPENAI_API_KEY',
   },
   {
+    name: 'gemini',
+    label: 'Gemini',
+    url: 'aistudio.google.com',
+    free: true,
+    envVar: 'GOOGLE_API_KEY',
+  },
+  {
     name: 'nim',
     label: 'NIM',
     url: 'build.nvidia.com',
     free: true,
     envVar: 'NIM_API_KEY',
+  },
+  {
+    name: 'ollama',
+    label: 'Ollama',
+    url: 'localhost:11434',
+    free: true,
+    envVar: 'OLLAMA_HOST',
   },
 ];
 
@@ -76,7 +90,10 @@ export function SetupScreen({ onComplete }: SetupScreenProps) {
 
   const handleSubmit = (value: string) => {
     const trimmed = value.trim();
-    if (trimmed && focusedProvider) {
+    if (focusedProvider?.name === 'ollama') {
+      // Ollama needs no API key — mark as acknowledged
+      setConfigured((prev) => new Set([...prev, 'ollama']));
+    } else if (trimmed && focusedProvider) {
       setApiKey(focusedProvider.name, trimmed);
       setConfigured((prev) => new Set([...prev, focusedProvider.name]));
     }
@@ -137,8 +154,9 @@ export function SetupScreen({ onComplete }: SetupScreenProps) {
             paddingY={1}
           >
             <Text color="gray">
-              Get your key at <Text color="cyan">{focusedProvider.url}</Text> or set env var{' '}
-              <Text color="cyan">{focusedProvider.envVar}</Text>
+              {focusedProvider.name === 'ollama'
+                ? 'Ollama doit tourner localement. Installez-le sur ollama.ai. Pas de clé requise.'
+                : `Get your key at ${focusedProvider.url} or set env var ${focusedProvider.envVar}`}
             </Text>
             <Box gap={1} marginTop={1}>
               <Text color="cyan">›</Text>

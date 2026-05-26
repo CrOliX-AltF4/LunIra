@@ -23,11 +23,13 @@ export const STATUS_COLORS: Record<PipelineStepStatus, string> = {
 // ─── Provider colors ──────────────────────────────────────────────────────────
 
 export const PROVIDER_COLORS: Record<ProviderName, string> = {
+  openrouter: 'white',
   groq: 'cyan',
   gemini: 'blue',
   claude: 'magenta',
   openai: 'green',
   nim: 'yellow',
+  ollama: 'gray',
 };
 
 // ─── Role labels ──────────────────────────────────────────────────────────────

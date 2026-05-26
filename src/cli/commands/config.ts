@@ -6,13 +6,23 @@ import {
 } from '../../providers/index.js';
 import type { ProviderName } from '../../types/index.js';
 
-const VALID_PROVIDERS: ProviderName[] = ['groq', 'gemini', 'claude', 'openai', 'nim'];
+const VALID_PROVIDERS: ProviderName[] = [
+  'openrouter',
+  'groq',
+  'gemini',
+  'claude',
+  'openai',
+  'nim',
+  'ollama',
+];
 const PROVIDER_ENV: Record<ProviderName, string> = {
+  openrouter: 'OPENROUTER_API_KEY',
   groq: 'GROQ_API_KEY',
   gemini: 'GOOGLE_API_KEY',
   claude: 'ANTHROPIC_API_KEY',
   openai: 'OPENAI_API_KEY',
   nim: 'NIM_API_KEY',
+  ollama: 'OLLAMA_HOST',
 };
 
 function isProviderName(value: string): value is ProviderName {
