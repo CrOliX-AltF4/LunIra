@@ -2,6 +2,10 @@ import React, { useState, useEffect } from 'react';
 import { Box, Text, useInput, useApp } from 'ink';
 import { mkdir, writeFile } from 'node:fs/promises';
 import { join, dirname } from 'node:path';
+import { exec } from 'node:child_process';
+import { promisify } from 'node:util';
+
+const execAsync = promisify(exec);
 import { Separator } from '../components/Separator.js';
 import type { OnCompanionChange } from '../workspace/types.js';
 import { STATUS_COLORS } from '../theme.js';
@@ -10,7 +14,7 @@ import type { DevOutput, POOutput, PlannerOutput, QAOutput, QAIssue } from '../.
 
 // ─── Tab type ─────────────────────────────────────────────────────────────────
 
-type Tab = 'overview' | 'files' | 'plan';
+type Tab = 'overview' | 'files' | 'plan' | 'diff';
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
@@ -69,10 +73,11 @@ const TAB_LABELS: Record<Tab, string> = {
   overview: 'Overview',
   files: 'Files',
   plan: 'Plan',
+  diff: 'Diff',
 };
 
 function TabBar({ active }: { active: Tab }) {
-  const tabs: Tab[] = ['overview', 'files', 'plan'];
+  const tabs: Tab[] = ['overview', 'files', 'plan', 'diff'];
   return (
     <Box gap={0}>
       {tabs.map((tab, i) => {
@@ -426,6 +431,94 @@ async function saveArtifacts(
   return outputDir;
 }
 
+// ─── Diff tab ─────────────────────────────────────────────────────────────────
+
+const MAX_DIFF_LINES = 150;
+
+function DiffTab() {
+  const [stat, setStat] = useState<string>('');
+  const [diff, setDiff] = useState<string>('');
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    void (async () => {
+      try {
+        const [statResult, diffResult] = await Promise.all([
+          execAsync('git diff HEAD --stat'),
+          execAsync('git diff HEAD'),
+        ]);
+        setStat(statResult.stdout.trim());
+        setDiff(diffResult.stdout.trim());
+      } catch {
+        setStat('');
+        setDiff('');
+      } finally {
+        setLoading(false);
+      }
+    })();
+  }, []);
+
+  if (loading) {
+    return (
+      <Text color="gray" dimColor>
+        Lecture du diff…
+      </Text>
+    );
+  }
+
+  if (!diff) {
+    return (
+      <Text color="gray" dimColor>
+        Aucune modification Git. Utilisez --apply pour appliquer les changements.
+      </Text>
+    );
+  }
+
+  const lines = diff.split('\n').slice(0, MAX_DIFF_LINES);
+
+  return (
+    <Box flexDirection="column" gap={1}>
+      {stat.length > 0 && (
+        <Box flexDirection="column" gap={0}>
+          <Text color="gray" bold>
+            Résumé
+          </Text>
+          {stat.split('\n').map((line, i) => (
+            <Text key={i} color="gray">
+              {line}
+            </Text>
+          ))}
+        </Box>
+      )}
+      <Box flexDirection="column" gap={0}>
+        <Text color="gray" bold>
+          Diff
+        </Text>
+        {lines.map((line, i) => {
+          const color = line.startsWith('+')
+            ? 'green'
+            : line.startsWith('-')
+              ? 'red'
+              : line.startsWith('@@')
+                ? 'cyan'
+                : 'gray';
+          const dim = !line.startsWith('+') && !line.startsWith('-') && !line.startsWith('@@');
+          return (
+            <Text key={i} color={color} {...(dim ? { dimColor: true } : {})}>
+              {line}
+            </Text>
+          );
+        })}
+        {diff.split('\n').length > MAX_DIFF_LINES && (
+          <Text color="gray" dimColor>
+            … {diff.split('\n').length - MAX_DIFF_LINES} lignes supplémentaires
+          </Text>
+        )}
+      </Box>
+    </Box>
+  );
+}
+
 // ─── Screen ───────────────────────────────────────────────────────────────────
 
 interface ResultsScreenProps {
@@ -462,6 +555,7 @@ export function ResultsScreen({
     if (input === '1') setTab('overview');
     if (input === '2') setTab('files');
     if (input === '3') setTab('plan');
+    if (input === '4') setTab('diff');
 
     // File navigation (only on files tab)
     if (tab === 'files') {
@@ -507,6 +601,7 @@ export function ResultsScreen({
           {tab === 'overview' && <OverviewTab run={run} qa={qa} />}
           {tab === 'files' && <FilesTab dev={dev} selectedIndex={selectedFile} />}
           {tab === 'plan' && <PlanTab planner={planner} />}
+          {tab === 'diff' && <DiffTab />}
         </Box>
 
         {/* Save feedback */}
