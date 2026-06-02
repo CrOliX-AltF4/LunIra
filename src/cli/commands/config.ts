@@ -71,7 +71,12 @@ export function configCommand(action: string, key: string, value?: string): void
         console.error('A value is required for the set action.');
         process.exit(1);
       }
-      setApiKey(parsed.provider, value);
+      try {
+        setApiKey(parsed.provider, value);
+      } catch (err) {
+        console.error(err instanceof Error ? err.message : String(err));
+        process.exit(1);
+      }
       console.log(`✓ ${key} saved to ~/.lunatar/config.json`);
       break;
     }

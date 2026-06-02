@@ -1,6 +1,6 @@
 {
   "name": "lunatar",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "Multi-agent AI development pipeline CLI — forge production-ready code from a single intent",
   "type": "module",
   "engines": {

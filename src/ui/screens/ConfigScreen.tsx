@@ -55,7 +55,7 @@ export function ConfigScreen({ onConfirm, onBack, onCompanionChange }: ConfigScr
         .map((x) => x.item.id);
       onConfirm(activeSkillIds, activePluginIds);
     }
-    if (key.escape || input === 'q') onBack();
+    if (key.escape) onBack();
   });
 
   return (

@@ -84,4 +84,42 @@ describe('providers/config', () => {
     expect(list).toContain('openai');
     expect(list).not.toContain('claude');
   });
+
+  describe('mock key detection', () => {
+    it('setApiKey throws for a key containing "mock"', () => {
+      expect(() => {
+        setApiKey('groq', 'gsk_mock_ui_test_only');
+      }).toThrow(/placeholder or mock/);
+    });
+
+    it('getApiKey returns undefined for an env var containing "mock"', () => {
+      process.env['GROQ_API_KEY'] = 'gsk_mock_dev_key';
+      expect(getApiKey('groq')).toBeUndefined();
+    });
+
+    it('setApiKey throws for a key containing "test_only"', () => {
+      expect(() => {
+        setApiKey('openai', 'sk-test_only-key');
+      }).toThrow(/placeholder or mock/);
+    });
+
+    it('setApiKey throws for a key containing "placeholder"', () => {
+      expect(() => {
+        setApiKey('claude', 'placeholder-key');
+      }).toThrow(/placeholder or mock/);
+    });
+
+    it('getApiKey returns undefined for an env var containing "fake"', () => {
+      process.env['GROQ_API_KEY'] = 'fake-api-key';
+      expect(getApiKey('groq')).toBeUndefined();
+    });
+
+    it('listConfiguredProviders excludes providers with mock env vars', () => {
+      process.env['GROQ_API_KEY'] = 'gsk_mock_ui_test_only';
+      setApiKey('openai', 'real-openai-key');
+      const list = listConfiguredProviders();
+      expect(list).not.toContain('groq');
+      expect(list).toContain('openai');
+    });
+  });
 });

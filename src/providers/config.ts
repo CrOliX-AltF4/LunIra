@@ -37,19 +37,31 @@ const ENV_KEYS: Record<ProviderName, string[]> = {
   ollama: [],
 };
 
+const MOCK_KEY_PATTERN = /mock|test[_-]?only|placeholder|fake/i;
+
+function isRealKey(key: string): boolean {
+  return key.length > 0 && !MOCK_KEY_PATTERN.test(key);
+}
+
 export function getApiKey(provider: ProviderName): string | undefined {
   // 1. environment variables take precedence (first match wins)
   for (const envVar of ENV_KEYS[provider]) {
     const fromEnv = process.env[envVar];
-    if (fromEnv) return fromEnv;
+    if (fromEnv && isRealKey(fromEnv)) return fromEnv;
   }
 
   // 2. fall back to persisted config
   const config = readConfig();
-  return config[provider]?.apiKey;
+  const key = config[provider]?.apiKey;
+  return key && isRealKey(key) ? key : undefined;
 }
 
 export function setApiKey(provider: ProviderName, apiKey: string): void {
+  if (!isRealKey(apiKey)) {
+    throw new Error(
+      `API key looks like a placeholder or mock value. Provide a real key from your provider dashboard.`,
+    );
+  }
   const config = readConfig();
   config[provider] = { apiKey };
   writeConfig(config);
