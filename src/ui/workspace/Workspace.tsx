@@ -10,6 +10,7 @@ import { SetupScreen } from '../screens/SetupScreen.js';
 import { ConfigScreen } from '../screens/ConfigScreen.js';
 import { WelcomeScreen } from '../screens/WelcomeScreen.js';
 import { HistoryScreen } from '../screens/HistoryScreen.js';
+import { CostsView } from './CostsView.js';
 import { listConfiguredProviders } from '../../providers/config.js';
 import type { WorkspaceView } from './types.js';
 import type { CompanionState } from '../theme.js';
@@ -121,6 +122,7 @@ export function Workspace({ initialIntent, skipRoles, startOnWelcome = false }: 
         setView('setup');
         break;
       case 'costs':
+        setView('costs');
         break;
       case 'demo':
         setIntent('Demo: JWT authentication REST API');
@@ -179,6 +181,14 @@ export function Workspace({ initialIntent, skipRoles, startOnWelcome = false }: 
             {...(isDemo ? { readOnly: true } : {})}
           />
         ) : null;
+      case 'costs':
+        return (
+          <CostsView
+            onBack={() => {
+              setView('prompt');
+            }}
+          />
+        );
       case 'history':
         return (
           <HistoryScreen
