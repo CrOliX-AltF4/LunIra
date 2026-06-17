@@ -1,8 +1,10 @@
 import { resolve } from 'node:path';
 import { existsSync, readdirSync } from 'node:fs';
-import type { Plugin } from './types.js';
+import type { Plugin, PluginTier } from './types.js';
 
-function isValidPlugin(value: unknown): value is Plugin {
+type PluginShape = Omit<Plugin, 'tier'>;
+
+function isValidPlugin(value: unknown): value is PluginShape {
   if (typeof value !== 'object' || value === null) return false;
   const p = value as Record<string, unknown>;
   return (
@@ -14,6 +16,8 @@ function isValidPlugin(value: unknown): value is Plugin {
     typeof p['handler'] === 'function'
   );
 }
+
+const VALID_TIERS = new Set<string>(['safe', 'restricted', 'dangerous']);
 
 export async function loadExternalPlugin(ref: string, cwd = process.cwd()): Promise<Plugin> {
   const isLocalPath = ref.startsWith('.') || ref.startsWith('/');
@@ -30,7 +34,13 @@ export async function loadExternalPlugin(ref: string, cwd = process.cwd()): Prom
     throw new Error(`Invalid plugin at "${ref}": must export { id, name, role, tool, handler }`);
   }
 
-  return { tier: 'restricted' as const, ...plugin };
+  const raw = plugin as Record<string, unknown>;
+  const tier: PluginTier =
+    typeof raw['tier'] === 'string' && VALID_TIERS.has(raw['tier'])
+      ? (raw['tier'] as PluginTier)
+      : 'restricted';
+
+  return { ...plugin, tier };
 }
 
 export async function discoverNpmPlugins(cwd = process.cwd()): Promise<Plugin[]> {
