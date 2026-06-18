@@ -19,7 +19,7 @@ export default defineConfig({
     // Copy config schema (dynamic import to get the compiled value)
     const { projectConfigSchema } = await import('./src/config/schema.js');
     writeFileSync(
-      'dist/lunatar.config.schema.json',
+      'dist/lunira.config.schema.json',
       JSON.stringify(projectConfigSchema, null, 2),
       'utf-8',
     );
