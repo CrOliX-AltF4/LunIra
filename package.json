@@ -1,5 +1,5 @@
 {
-  "name": "lunira",
+  "name": "@crolix-altf4/lunira",
   "version": "1.2.0",
   "description": "Multi-agent AI development pipeline CLI — forge production-ready code from a single intent",
   "type": "module",
@@ -8,7 +8,7 @@
     "npm": ">=10.0.0"
   },
   "bin": {
-    "lunira": "./dist/index.js"
+    "lunira": "dist/index.js"
   },
   "scripts": {
     "build": "tsup",
