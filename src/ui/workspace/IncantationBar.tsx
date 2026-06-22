@@ -1,13 +1,14 @@
+// src/ui/workspace/IncantationBar.tsx
 import React, { useState } from 'react';
 import { Box, Text, useInput } from 'ink';
 import TextInput from 'ink-text-input';
 import chalk from 'chalk';
 import { GOLD } from '../theme.js';
 import { Separator } from '../components/Separator.js';
+import { matchCommands, resolveCommand } from './commandMatcher.js';
+import type { SlashCommand } from './commandMatcher.js';
 
-// ─── Slash command registry (shown as hints) ──────────────────────────────────
-
-const SLASH_COMMANDS = [
+const SLASH_COMMANDS: SlashCommand[] = [
   { cmd: '/history', desc: 'annales — browse past runs' },
   { cmd: '/arsenal', desc: 'select skills & plugins for next run' },
   { cmd: '/setup', desc: 'arm the forge — configure API keys' },
@@ -34,12 +35,32 @@ export function IncantationBar({
 }: IncantationBarProps) {
   const [value, setValue] = useState('');
   const [historyIndex, setHistoryIndex] = useState<number | null>(null);
+  const [pickerIndex, setPickerIndex] = useState<number | null>(null);
+
+  const inSlashMode = value.startsWith('/');
+  const matchedCommands = inSlashMode ? matchCommands(value, SLASH_COMMANDS, MAX_HINTS) : [];
 
   useInput(
     (_input, key) => {
-      if (value.startsWith('/')) return;
-      if (intentHistory.length === 0) return;
+      if (inSlashMode) {
+        if (key.upArrow && matchedCommands.length > 0) {
+          setPickerIndex((i) => (i === null || i === 0 ? matchedCommands.length - 1 : i - 1));
+          return;
+        }
+        if (key.downArrow && matchedCommands.length > 0) {
+          setPickerIndex((i) => (i === null || i >= matchedCommands.length - 1 ? 0 : i + 1));
+          return;
+        }
+        if (key.escape) {
+          setValue('');
+          setPickerIndex(null);
+          return;
+        }
+        return; // don't fall through to history navigation in slash mode
+      }
 
+      // Intent history navigation
+      if (intentHistory.length === 0) return;
       if (key.upArrow) {
         const newIndex =
           historyIndex === null ? intentHistory.length - 1 : Math.max(0, historyIndex - 1);
@@ -63,6 +84,7 @@ export function IncantationBar({
   const handleChange = (val: string) => {
     setValue(val);
     setHistoryIndex(null);
+    setPickerIndex(null); // reset picker when user types
   };
 
   const handleSubmit = (val: string) => {
@@ -70,24 +92,19 @@ export function IncantationBar({
     if (!trimmed) return;
     setValue('');
     setHistoryIndex(null);
+    setPickerIndex(null);
 
     if (trimmed.startsWith('/')) {
-      const [rawCmd = '', ...rest] = trimmed.slice(1).split(' ');
-      const cmd = rawCmd.toLowerCase();
-      const args = rest.join(' ');
-      onCommand?.(cmd, args);
+      const resolved = resolveCommand(trimmed, SLASH_COMMANDS, pickerIndex, MAX_HINTS);
+      if (resolved) {
+        onCommand?.(resolved.cmd, resolved.args);
+      }
+      // if ambiguous (null), do nothing — user needs to be more specific or use ↑/↓
       return;
     }
 
     onSubmit(trimmed);
   };
-
-  const showHints = value.startsWith('/');
-  const allMatches = showHints
-    ? SLASH_COMMANDS.filter((c) => c.cmd.startsWith(value.toLowerCase()))
-    : [];
-  const matchedCommands = allMatches.slice(0, MAX_HINTS);
-  const hiddenCount = allMatches.length - matchedCommands.length;
 
   return (
     <Box flexDirection="column">
@@ -102,22 +119,23 @@ export function IncantationBar({
           </Box>
         ) : (
           <>
-            {/* Slash command hints */}
+            {/* Slash command picker */}
             {matchedCommands.length > 0 && (
               <Box flexDirection="column" marginBottom={1}>
-                {matchedCommands.map(({ cmd, desc }) => (
-                  <Box key={cmd} gap={2}>
-                    <Text color={GOLD}>{cmd}</Text>
-                    <Text color="gray" dimColor>
-                      {desc}
-                    </Text>
-                  </Box>
-                ))}
-                {hiddenCount > 0 && (
-                  <Text color="gray" dimColor>
-                    … {String(hiddenCount)} more
-                  </Text>
-                )}
+                {matchedCommands.map(({ cmd, desc }, idx) => {
+                  const isActive = idx === pickerIndex;
+                  return (
+                    <Box key={cmd} gap={2}>
+                      <Text color={isActive ? 'white' : GOLD} bold={isActive}>
+                        {isActive ? '▶ ' : '  '}
+                        {cmd}
+                      </Text>
+                      <Text color="gray" dimColor={!isActive}>
+                        {desc}
+                      </Text>
+                    </Box>
+                  );
+                })}
               </Box>
             )}
 
@@ -140,7 +158,7 @@ export function IncantationBar({
               </Text>
               <Text color="gray" dimColor>
                 <Text>{chalk.hex(GOLD)('[/]')}</Text>
-                <Text color="gray"> commands</Text>
+                <Text color="gray"> commands · ↑↓ navigate · Esc cancel</Text>
               </Text>
               {intentHistory.length > 0 && (
                 <Text color="gray" dimColor>
