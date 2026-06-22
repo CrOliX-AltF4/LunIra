@@ -5,16 +5,7 @@ import TextInput from 'ink-text-input';
 import chalk from 'chalk';
 import { GOLD } from '../theme.js';
 import { Separator } from '../components/Separator.js';
-import { matchCommands, resolveCommand } from './commandMatcher.js';
-import type { SlashCommand } from './commandMatcher.js';
-
-const SLASH_COMMANDS: SlashCommand[] = [
-  { cmd: '/history', desc: 'annales — browse past runs' },
-  { cmd: '/arsenal', desc: 'select skills & plugins for next run' },
-  { cmd: '/setup', desc: 'arm the forge — configure API keys' },
-  { cmd: '/costs', desc: 'combustible — cost dashboard' },
-  { cmd: '/demo', desc: 'demo pipeline — no API key needed' },
-];
+import { matchCommands, resolveCommand, SLASH_COMMANDS } from './commandMatcher.js';
 
 const MAX_HINTS = 5;
 

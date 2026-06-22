@@ -4,6 +4,15 @@ export interface SlashCommand {
   desc: string;
 }
 
+export const SLASH_COMMANDS: SlashCommand[] = [
+  { cmd: '/history', desc: 'annales — browse past runs' },
+  { cmd: '/arsenal', desc: 'select skills & plugins for next run' },
+  { cmd: '/setup', desc: 'arm the forge — configure API keys' },
+  { cmd: '/costs', desc: 'combustible — cost dashboard' },
+  { cmd: '/demo', desc: 'demo pipeline — no API key needed' },
+  { cmd: '/ask', desc: 'single-turn question to LLM' },
+];
+
 export function matchCommands(
   input: string,
   commands: SlashCommand[],
