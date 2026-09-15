@@ -209,6 +209,10 @@ lunira init                                    # scaffold a new project
 
 ## Lun ecosystem
 
+> **Doctrine** — ecosystem constitution and standards live in LunAnima's `docs/constitution.md` and
+> `docs/standards/` (private repo). Rewritten 2026-09-15 — see LunAnima's
+> `docs/adr/ADR-003-refonte-doctrine-2026-09.md`.
+
 | Project                                                    | Role                                                      |
 | ---------------------------------------------------------- | --------------------------------------------------------- |
 | **LunIra**                                                 | AI dev pipeline — intent → code                           |
