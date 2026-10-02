@@ -70,7 +70,7 @@ One plain-text intent enters. Four agents process it in sequence — each focuse
 Why four agents instead of one? Context pollution. A single LLM handling PO + architecture + code + QA in one context degrades fast. Lun'Ira splits each responsibility, keeps outputs typed, and gives you full traceability per run.
 
 > [!NOTE]
-> "Ira" is the sin of Wrath (Trinity Seven) — the forge that strikes with precision and force. Part of the [Lun' ecosystem](https://github.com/CrOliX-AltF4).
+> "Ira" is the sin of Wrath — the forge that strikes with precision and force. Part of the [Lun' ecosystem](https://github.com/CrOliX-AltF4).
 
 ---
 
