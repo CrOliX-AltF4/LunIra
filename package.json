@@ -1,6 +1,6 @@
 {
   "name": "@crolix-altf4/lunira",
-  "version": "1.3.0",
+  "version": "1.3.1",
   "description": "Multi-agent AI development pipeline CLI — forge production-ready code from a single intent",
   "type": "module",
   "engines": {
@@ -22,8 +22,7 @@
     "test:watch": "vitest",
     "test:coverage": "vitest run --coverage",
     "prepare": "husky",
-    "prepublishOnly": "npm run build && npm test",
-    "gen:mascot": "tsx scripts/mascot-calcifer.ts"
+    "prepublishOnly": "npm run build && npm test"
   },
   "lint-staged": {
     "*.{ts,tsx}": [

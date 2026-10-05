@@ -3,9 +3,9 @@
 # ◆ Lun'Ira
 
 [![Version](https://img.shields.io/npm/v/@crolix-altf4/lunira?style=flat-square&color=C8A415)](https://www.npmjs.com/package/@crolix-altf4/lunira)
-[![License](https://img.shields.io/badge/license-MIT-333333?style=flat-square)](LICENSE)
 [![CI](https://img.shields.io/github/actions/workflow/status/CrOliX-AltF4/LunIra/ci.yml?style=flat-square&label=CI)](https://github.com/CrOliX-AltF4/LunIra/actions)
 [![Node](https://img.shields.io/badge/node-%3E%3D20-555555?style=flat-square)](.)
+[![License](https://img.shields.io/badge/license-MIT-333333?style=flat-square)](LICENSE)
 
 **intent → code**
 
@@ -13,11 +13,13 @@ _A multi-agent AI pipeline CLI. Feed the forge a plain-text intent — refined, 
 
 </div>
 
----
-
 <div align="center">
-  <img src="assets/calcifer-f0.png" alt="Lun'Ira — the forge spirit" width="140"/>
+  <img src="assets/flame-f0.png" alt="Lun'Ira — the forge's living flame" width="140"/>
 </div>
+
+> [!NOTE]
+> **Status: active** — released on npm. Fully standalone: a CLI and a terminal UI, with your own model provider keys.
+> Part of the [Lun' ecosystem](https://github.com/CrOliX-AltF4).
 
 ---
 
@@ -36,7 +38,9 @@ lunira               # the forge opens — setup runs automatically on first lau
 
 ---
 
-## The forge
+## What it does
+
+### The forge
 
 One plain-text intent enters. Four agents process it in sequence — each focused on a single role, passing only what the next step needs. On failure, the work goes back into the fire.
 
@@ -69,12 +73,7 @@ One plain-text intent enters. Four agents process it in sequence — each focuse
 
 Why four agents instead of one? Context pollution. A single LLM handling PO + architecture + code + QA in one context degrades fast. Lun'Ira splits each responsibility, keeps outputs typed, and gives you full traceability per run.
 
-> [!NOTE]
-> "Ira" is the sin of Wrath — the forge that strikes with precision and force. Part of the [Lun' ecosystem](https://github.com/CrOliX-AltF4).
-
----
-
-## Features
+### Features
 
 **Pipeline**
 
@@ -110,7 +109,7 @@ Both are declared per-project via `lunira.config.json` and selectable per-run fr
 
 **TUI**
 
-- Animated living flame mascot (Calcifer-inspired) on the idle screen
+- Animated living flame mascot on the idle screen
 - Slash command navigation — `/history`, `/arsenal`, `/setup`, `/demo`
 - Live pipeline view with forge fire animation per active step
 - Tabbed results: Verdict · Artefacts · Stratégie · Diff
@@ -120,7 +119,9 @@ Both are declared per-project via `lunira.config.json` and selectable per-run fr
 
 ---
 
-## Setup
+## Configuration
+
+### Setup
 
 The forge is cold until you light it. On first launch, Lun'Ira opens setup automatically.
 
@@ -139,7 +140,7 @@ lunira config set openrouter.apiKey <key> # one key, 200+ models
 
 ---
 
-## CLI
+### CLI
 
 ```bash
 lunira                                         # interactive TUI
@@ -162,7 +163,7 @@ lunira install plugin <name>                   # install a lunira-plugin-* packa
 lunira init                                    # scaffold a new project
 ```
 
-## TUI controls
+### TUI controls
 
 | Key        | Action                                                |
 | ---------- | ----------------------------------------------------- |
@@ -181,7 +182,7 @@ lunira init                                    # scaffold a new project
 
 ---
 
-## Project config
+### Project config
 
 ```json
 {
@@ -207,22 +208,34 @@ lunira init                                    # scaffold a new project
 
 ---
 
-## Lun ecosystem
+## Development
 
-| Project                                                    | Role                                                      |
-| ---------------------------------------------------------- | --------------------------------------------------------- |
-| **LunIra**                                                 | AI dev pipeline — intent → code                           |
-| [LunAcedia](https://github.com/CrOliX-AltF4/LunAcedia)     | Information infrastructure — events · actions · AI butler |
-| [LunAvaritia](https://github.com/CrOliX-AltF4/LunAvaritia) | Mobile companion — Android                                |
-| [LunGula](https://github.com/CrOliX-AltF4/LunGula)         | Imitation learning — gameplay → ONNX policy               |
-| LunAnima                                                   | AI companion core — private                               |
+```bash
+npm run typecheck
+npm run lint
+npm run format:check
+npm test
+npm run build        # tsup → dist/
+```
+
+A version bump of `package.json` merged on `master` is tagged automatically; the tag publishes the package to npm and
+a GitHub release.
+
+---
+
+## Lun' ecosystem
+
+| Project                                                     | Role                                             | Status         |
+| ----------------------------------------------------------- | ------------------------------------------------ | -------------- |
+| **Lun'Ira**                                                 | AI dev pipeline — intent → code                  | Active         |
+| [Lun'Acedia](https://github.com/CrOliX-AltF4/LunAcedia)     | Your box and your day — events · actions · agent | In development |
+| [Lun'Avaritia](https://github.com/CrOliX-AltF4/LunAvaritia) | Lun'Acedia in your pocket — Android              | In development |
+| [Lun'Gula](https://github.com/CrOliX-AltF4/LunGula)         | Imitation learning — replays → ONNX model        | Paused         |
 
 ---
 
 <div align="center">
 
 Built by **[CrOliX-AltF4](https://github.com/CrOliX-AltF4)** · MIT License · © 2026
-
-_Where raw intent finds its final form._
 
 </div>
